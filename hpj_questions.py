@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import List
 from survey import QuestionBase, Survey
+from survey.question_base import question_class_factory
 
 
 class QuestionKeys(StrEnum):
@@ -71,50 +72,53 @@ def build_questions() -> dict[str, QuestionBase]:
     
     yes_no_options = ['Да', 'Нет']
 
+    question = question_class_factory(q_strings)
+
     questions_description = {
-        QK.Date: QuestionBase(text=q_strings[QK.Date], next_q=QK.HadPain, 
-                              validators=[validate_date], options=suggest_date, 
-                              strict_options=False),
+        QK.Date: question(q_key=QK.Date, next_q=QK.HadPain, 
+                          validators=[validate_date], options=suggest_date, 
+                          strict_options=False),
 
-        QK.HadPain: QuestionBase(text=q_strings[QK.HadPain], next_q=had_pain_next_q,
-                                 options=yes_no_options),
+        QK.HadPain: question(q_key=QK.HadPain, next_q=had_pain_next_q,
+                             options=yes_no_options),
 
-        QK.FirstNotice: QuestionBase(text=q_strings[QK.FirstNotice], next_q=QK.WhenStop),
+        QK.FirstNotice: question(q_key=QK.FirstNotice, next_q=QK.WhenStop),
 
-        QK.WhenStop: QuestionBase(text=q_strings[QK.WhenStop], next_q=QK.EyeDellusion),
+        QK.WhenStop: question(q_key=QK.WhenStop, next_q=QK.EyeDellusion),
 
-        QK.EyeDellusion: QuestionBase(text=q_strings[QK.EyeDellusion], next_q=QK.WhereHurts,
-                                      options=yes_no_options),
-
-        QK.WhereHurts: QuestionBase(text=q_strings[QK.WhereHurts], next_q=QK.Nature),
-
-        QK.Nature: QuestionBase(text=q_strings[QK.Nature], next_q=QK.PhysicalTrigger, 
-                                options=['Пульсирующая', 'Сжимающая']),
-
-        QK.PhysicalTrigger: QuestionBase(text=q_strings[QK.PhysicalTrigger], 
-                                         next_q=QK.PainIntensity, options=yes_no_options),
-        
-        QK.PainIntensity: QuestionBase(text=q_strings[QK.PainIntensity],
-                                       next_q=QK.HadSickness, 
-                                       options=['Незначительная', 'Сильная', 'Очень сильная']),
-
-        QK.HadSickness: QuestionBase(text=q_strings[QK.HadSickness], next_q=QK.HadVomit, 
-                                     options=['Нет', 'Незначительная', 'Заметная']),
-
-        QK.HadVomit: QuestionBase(text=q_strings[QK.HadVomit], next_q=QK.LightIrritation, 
+        QK.EyeDellusion: question(q_key=QK.EyeDellusion, next_q=QK.WhereHurts,
                                   options=yes_no_options),
 
-        QK.LightIrritation: QuestionBase(text=q_strings[QK.LightIrritation], 
-                                         next_q=QK.SoundIrritation, options=yes_no_options),
+        QK.WhereHurts: question(q_key=QK.WhereHurts, next_q=QK.Nature),
 
-        QK.SoundIrritation: QuestionBase(text=q_strings[QK.SoundIrritation], next_q=QK.Causes, 
-                                         options=yes_no_options),
+        QK.Nature: question(q_key=QK.Nature, next_q=QK.PhysicalTrigger, 
+                            options=['Пульсирующая', 'Сжимающая']),
 
-        QK.Causes: QuestionBase(text=q_strings[QK.Causes], next_q=QK.Painkillers),
+        QK.PhysicalTrigger: question(q_key=QK.PhysicalTrigger, 
+                                     next_q=QK.PainIntensity, options=yes_no_options),
+        
+        QK.PainIntensity: question(q_key=QK.PainIntensity,
+                                   next_q=QK.HadSickness, 
+                                   options=['Незначительная', 'Сильная', 'Очень сильная']),
 
-        QK.Painkillers: QuestionBase(text=q_strings[QK.Painkillers], next_q=QK.Comments),
-        QK.Comments: QuestionBase(text=q_strings[QK.Comments], next_q=None, 
-                                  options=['Нет комментариев'], strict_options=False),
+        QK.HadSickness: question(q_key=QK.HadSickness, next_q=QK.HadVomit, 
+                                 options=['Нет', 'Незначительная', 'Заметная']),
+
+        QK.HadVomit: question(q_key=QK.HadVomit, next_q=QK.LightIrritation, 
+                              options=yes_no_options),
+
+        QK.LightIrritation: question(q_key=QK.LightIrritation, 
+                                     next_q=QK.SoundIrritation, options=yes_no_options),
+
+        QK.SoundIrritation: question(q_key=QK.SoundIrritation, next_q=QK.Causes, 
+                                     options=yes_no_options),
+
+        QK.Causes: question(q_key=QK.Causes, next_q=QK.Painkillers),
+
+        QK.Painkillers: question(q_key=QK.Painkillers, next_q=QK.Comments),
+
+        QK.Comments: question(q_key=QK.Comments, next_q=None, 
+                              options=['Нет комментариев'], strict_options=False),
     }
 
     return questions_description

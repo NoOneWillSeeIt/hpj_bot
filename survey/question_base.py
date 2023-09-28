@@ -4,13 +4,15 @@ from typing import Callable, List, Optional, Self, Union
 
 class QuestionBase:
 
+    _question_source = None
+
     def __init__(self, 
-                 text: str, 
+                 q_key: str, 
                  next_q: Union[Callable[[Self, str], Self], Self, None] = None,
                  options: Union[List[str], Callable[..., List[str]]] = [],
                  strict_options: bool = True,
                  validators: Optional[List[Callable[[Self, str], bool]]] = []) -> None:
-        self._text = text
+        self._q_key = q_key
         self._next_q = next_q
         self._options = options or []
         self._strict_options = strict_options
@@ -29,7 +31,7 @@ class QuestionBase:
 
     @property
     def text(self) -> str:
-        return self._text + self.note
+        return self._question_source[self._q_key] + self.note
 
     def __str__(self) -> str:
         return self.text
@@ -52,10 +54,17 @@ class QuestionBase:
 
     def reply(self, answer: str) -> Optional[Self]:
         if not self._validate_reply_options(answer):
-            return self
+            return self._q_key
 
         for validator in self._validators:
             if not validator(self, answer):
-                return self
+                return self._q_key
         
         return self._next_q(self, answer) if callable(self._next_q) else self._next_q
+
+
+def question_class_factory(question_source: dict[str, str]):
+    class CustomQuestion(QuestionBase):
+        _text_source = question_source
+
+    return CustomQuestion
