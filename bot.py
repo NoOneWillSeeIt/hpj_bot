@@ -53,10 +53,9 @@ async def survey_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 def build_survey_keyboard(survey: Survey):
     if survey.question_options:
         keyboard = [[ans for ans in survey.question_options]]
-        return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, 
-                                       one_time_keyboard=True)
+        return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
 
-    return None
+    return ReplyKeyboardRemove()
 
 
 async def survey_back(update: Update, context: ContextTypes.DEFAULT_TYPE):
