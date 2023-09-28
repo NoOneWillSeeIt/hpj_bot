@@ -20,6 +20,7 @@ class QuestionKeys(StrEnum):
     SoundIrritation = 'q_sound_irritation'
     Causes = 'q_causes'
     Painkillers = 'q_painkillers'
+    Comments = 'q_comments'
 
 
 QK = QuestionKeys
@@ -27,20 +28,21 @@ QK = QuestionKeys
 
 q_strings = {
     QK.Date: 'Число',
-    QK.HadPain: 'Была ли у вас сегодня головная боль?',
-    QK.FirstNotice: 'Когда впервые заметили головную боль?',
+    QK.HadPain: 'Была ли у тебя сегодня головная боль?',
+    QK.FirstNotice: 'Когда впервые заметил(а) головную боль?',
     QK.WhenStop: 'Когда прекратилась?',
-    QK.EyeDellusion: 'В течение часа до начала головной боли отмечали ли Вы зрительные нарушения? (вспышки света, линии-зигзаги, слепые пятна и др.)',
+    QK.EyeDellusion: 'В течение часа до начала головной боли отмечал(а) ли ты зрительные нарушения? (вспышки света, линии-зигзаги, слепые пятна и др.)',
     QK.WhereHurts: 'Где отмечалась головная боль?',
     QK.Nature: 'Характер головной боли',
     QK.PhysicalTrigger: 'Ухудшалась ли головная боль при физической активности? (подъём по лестнице и др.)',
     QK.PainIntensity: 'Какова была в целом интенсивность головной боли?',
-    QK.HadSickness: 'Была ли у вас тошнота?',
+    QK.HadSickness: 'Была ли у тебя тошнота?',
     QK.HadVomit: 'Была ли рвота?',
-    QK.LightIrritation: 'Вас раздражал свет?',
-    QK.SoundIrritation: 'Вас раздражал звук?',
+    QK.LightIrritation: 'Тебя раздражал свет?',
+    QK.SoundIrritation: 'Тебя раздражал звук?',
     QK.Causes: 'Могло ли что-то послужить причиной головной боли?',
-    QK.Painkillers: 'Принимали ли вы сегодня препараты от головной боли? Для каждого препарата укажите название, принятую дозу и время приёма',
+    QK.Painkillers: 'Принимал(а) ли ты сегодня препараты от головной боли? Для каждого препарата укажи название, принятую дозу и время приёма',
+    QK.Comments: 'Комментарии касательно головной боли сегодня'
 }
 
 
@@ -71,7 +73,8 @@ def build_questions() -> dict[str, QuestionBase]:
 
     questions_description = {
         QK.Date: QuestionBase(text=q_strings[QK.Date], next_q=QK.HadPain, 
-                              validators=[validate_date], suggestions=suggest_date),
+                              validators=[validate_date], options=suggest_date, 
+                              strict_options=False),
 
         QK.HadPain: QuestionBase(text=q_strings[QK.HadPain], next_q=had_pain_next_q,
                                  options=yes_no_options),
@@ -83,8 +86,7 @@ def build_questions() -> dict[str, QuestionBase]:
         QK.EyeDellusion: QuestionBase(text=q_strings[QK.EyeDellusion], next_q=QK.WhereHurts,
                                       options=yes_no_options),
 
-        QK.WhereHurts: QuestionBase(text=q_strings[QK.WhereHurts], next_q=QK.Nature, 
-                                    options=['С одной стороны', 'С обеих']),
+        QK.WhereHurts: QuestionBase(text=q_strings[QK.WhereHurts], next_q=QK.Nature),
 
         QK.Nature: QuestionBase(text=q_strings[QK.Nature], next_q=QK.PhysicalTrigger, 
                                 options=['Пульсирующая', 'Сжимающая']),
@@ -110,7 +112,9 @@ def build_questions() -> dict[str, QuestionBase]:
 
         QK.Causes: QuestionBase(text=q_strings[QK.Causes], next_q=QK.Painkillers),
 
-        QK.Painkillers: QuestionBase(text=q_strings[QK.Painkillers], next_q=None),
+        QK.Painkillers: QuestionBase(text=q_strings[QK.Painkillers], next_q=QK.Comments),
+        QK.Comments: QuestionBase(text=q_strings[QK.Comments], next_q=None, 
+                                  options=['Нет комментариев'], strict_options=False),
     }
 
     return questions_description

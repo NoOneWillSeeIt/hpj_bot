@@ -38,7 +38,7 @@ class Survey:
 
     @property
     def question_options(self):
-        return self.question.options or self.question.suggestions
+        return self.question.options
 
     def reply(self, answer: str) -> None:
         answer = answer.strip()

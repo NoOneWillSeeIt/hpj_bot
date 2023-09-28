@@ -7,18 +7,20 @@ class QuestionBase:
     def __init__(self, 
                  text: str, 
                  next_q: Union[Callable[[Self, str], Self], Self, None] = None,
-                 options: Optional[List[str]] = [],
-                 suggestions: Union[List[str], Callable[..., List[str]]] = [],
+                 options: Union[List[str], Callable[..., List[str]]] = [],
+                 strict_options: bool = True,
                  validators: Optional[List[Callable[[Self, str], bool]]] = []) -> None:
         self._text = text
         self._next_q = next_q
         self._options = options or []
-        self._suggestions = suggestions or []
+        self._strict_options = strict_options
         self._validators = validators or []
         self._note = ''
 
     @property
     def note(self) -> str:
+        if not self._note and self._options:
+            return '\nВыбери ответ из списка'
         return self._note
 
     @note.setter
@@ -34,13 +36,9 @@ class QuestionBase:
 
     @property
     def options(self) -> List[str]:
+        if callable(self._options):
+            return self._options()
         return self._options
-
-    @property
-    def suggestions(self) -> List[str]:
-        if callable(self._suggestions):
-            return self._suggestions()
-        return self._suggestions
 
     def _validate_reply_options(self, answer) -> bool:
         if not self.options:
@@ -49,7 +47,7 @@ class QuestionBase:
         if answer.lower() in [pa.lower() for pa in self.options]:
             return True
 
-        self.note = '\nВарианты ответа: ' + ', '.join(self.options)
+        self.note = '\nОтветом являются только варианты: ' + ', '.join(self.options)
         return False
 
     def reply(self, answer: str) -> Optional[Self]:

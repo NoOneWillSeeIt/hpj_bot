@@ -78,7 +78,6 @@ async def survey_restart(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def survey_convo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     survey = context.chat_data.get('survey')
-    answer = update.message.text
 
     if not survey:
         await context.bot.set_my_commands(SURVEY_MENU_COMMANDS, 
@@ -87,7 +86,7 @@ async def survey_convo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.chat_data['survey'] = survey
 
     else:
-        survey.reply(answer)
+        survey.reply(update.message.text)
 
     if not survey.has_questions():
         await context.bot.set_my_commands(DEFAULT_BUTTON_COMMANDS, 
