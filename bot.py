@@ -97,6 +97,7 @@ async def survey_convo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await update.message.reply_text('Сохранено. Выздоравливай!', 
                                         reply_markup=ReplyKeyboardRemove())
+        del context.chat_data['survey']
         return ConversationHandler.END
 
     await update.message.reply_text(
