@@ -115,7 +115,8 @@ def build_questions() -> dict[str, QuestionBase]:
 
         QK.Causes: question(q_key=QK.Causes, next_q=QK.Painkillers),
 
-        QK.Painkillers: question(q_key=QK.Painkillers, next_q=QK.Comments),
+        QK.Painkillers: question(q_key=QK.Painkillers, next_q=QK.Comments, options=['Нет'], 
+                                 strict_options=False),
 
         QK.Comments: question(q_key=QK.Comments, next_q=None, 
                               options=['Нет комментариев'], strict_options=False),
