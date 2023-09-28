@@ -23,13 +23,16 @@ async def awaitable_execute(cursor: sqlite3.Cursor, sql: str, params: dict):
 
 async def db_write_alarm(bot_data: dict, chat_id: int, time: time):
     conn = get_db_conn_from_bot_data(bot_data)
+    time_str = time.strftime('%H:%M%z')
     await awaitable_execute(
         conn.cursor(), 
         '''
         INSERT INTO journal(chat_id, alarm) VALUES(:chat_id, :alarm)
         ON CONFLICT(chat_id) DO UPDATE SET alarm = excluded.alarm;
         ''', 
-        {'chat_id': chat_id, 'alarm': time.strftime('%H:%M%z')})
+        {'chat_id': chat_id, 'alarm': time_str})
+    
+    logging.info(f'DB saved alarm for {chat_id} on {time_str}')
     conn.commit()
 
 
@@ -45,4 +48,21 @@ async def db_write_entry(bot_data: dict, chat_id: int, entry: dict):
         {'chat_id': chat_id, 
          'date': date, 
          'entry': json.dumps(entry, ensure_ascii=False)})
+    
+    logging.info(f'DB saved new entry for {chat_id}')
+    conn.commit()
+
+
+async def db_clear_alarm(bot_data: dict, chat_id: int):
+    conn = get_db_conn_from_bot_data(bot_data)
+    await awaitable_execute(
+        conn.cursor(), 
+        '''
+        UPDATE journal
+        SET alarm = NULL 
+        WHERE chat_id = :chat_id;
+        ''', 
+        {'chat_id': chat_id})
+    
+    logging.info(f'DB dropped alarm for {chat_id}')
     conn.commit()

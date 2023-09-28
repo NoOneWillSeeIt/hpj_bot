@@ -142,6 +142,7 @@ async def alarm(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
     remove_job_if_exists(f'{SURVEY_JOB_PREFIX}{chat_id}', context)
+    await db_manager.db_clear_alarm(context.bot_data, chat_id)
     await update.message.reply_text(
         'Больше уведомлений не будет. Спасибо за использование, выздоравливай!', 
         reply_markup=ReplyKeyboardRemove()
