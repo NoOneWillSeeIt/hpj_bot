@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "hpj-tg-bot"
+version = "0.1.0"
+description = "Head pain journal through telegram bot"
+authors = ["NoOneWillSeeIt <rest338@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+python-telegram-bot = {extras = ["job-queue"], version = "^20.5"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
