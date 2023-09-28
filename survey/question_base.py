@@ -65,6 +65,6 @@ class QuestionBase:
 
 def question_class_factory(question_source: dict[str, str]):
     class CustomQuestion(QuestionBase):
-        _text_source = question_source
+        _question_source = question_source
 
     return CustomQuestion
