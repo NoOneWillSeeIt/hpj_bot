@@ -19,7 +19,7 @@ class QuestionBase:
 
     @property
     def note(self) -> str:
-        if not self._note and self._options:
+        if not self._note and self._options and self._strict_options:
             return '\nВыбери ответ из списка'
         return self._note
 
@@ -41,7 +41,7 @@ class QuestionBase:
         return self._options
 
     def _validate_reply_options(self, answer) -> bool:
-        if not self.options:
+        if not (self.options and self._strict_options):
             return True
         
         if answer.lower() in [pa.lower() for pa in self.options]:
