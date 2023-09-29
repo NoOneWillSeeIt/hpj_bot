@@ -57,7 +57,7 @@ def main():
     for row in chat_alarms.fetchall():
         try:
             chat_id = row[0]
-            time = datetime.strptime(row[1], '%H:%M%z').time()
+            time = datetime.strptime(row[1], '%H:%M%z').timetz()
             job_name = f'{SURVEY_JOB_PREFIX}{chat_id}'
             app.job_queue.run_daily(reminder, time, name=job_name, chat_id=chat_id)
 
