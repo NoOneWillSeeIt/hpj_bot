@@ -1,11 +1,12 @@
 from datetime import datetime
+import functools
 import logging
 import os
 import sqlite3
 
 from telegram import Update
 
-from bot import configure_app
+from bot import configure_app, post_init
 from constants import ALARM_JOB_PREFIX, DB_FOLDER, DB_PATH
 import db_queries as db
 from jobs import reminder as job_reminder
@@ -42,10 +43,12 @@ def main():
         except (ValueError, KeyError) as ex:
             logging.warning(f'Alarm job setting failed: {ex}')
             raise
+    
+    bot_data = {}
+    bot_data['db_conn'] = conn
+    bot_data['db_path'] = DB_PATH
 
-    app.bot_data['db_conn'] = conn
-    app.bot_data['db_path'] = DB_PATH
-
+    app.post_init = functools.partial(post_init, bot_data)
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 

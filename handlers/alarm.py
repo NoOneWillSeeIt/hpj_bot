@@ -86,7 +86,9 @@ def get_handlers() -> List[BaseHandler]:
                 MessageHandler(filters.TEXT, AlarmHandlers.alarm_convo),
             ]
         },
-        fallbacks=[]
+        fallbacks=[],
+        persistent=True,
+        name='alarm_convo',
     )
     cancel_handler = CommandHandler(HPJCommands.CANCEL, AlarmHandlers.cancel)
     return [alarm_handler, cancel_handler]

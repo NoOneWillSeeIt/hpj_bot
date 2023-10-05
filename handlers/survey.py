@@ -99,5 +99,7 @@ def get_handlers() -> List[BaseHandler]:
                 ],
             },
             fallbacks=[CommandHandler(HPJCommands.STOP, SurveyHandlers.stop)],
+            persistent=True,
+            name='survey_convo',
         )
     ]
