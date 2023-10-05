@@ -1,40 +1,57 @@
-from datetime import datetime, timedelta
-from typing import Callable, List, Optional, Self, Union
+from abc import ABC
+from typing import Callable, Final, List, Optional, Self, Tuple
 
+class IQuestion(ABC):
 
-class QuestionBase:
-
-    _question_source = None
-
-    def __init__(self, 
-                 q_key: str, 
-                 next_q: Union[Callable[[Self, str], Self], Self, None] = None,
-                 options: Union[List[str], Callable[..., List[str]]] = [],
-                 strict_options: bool = True,
-                 validators: Optional[List[Callable[[Self, str], bool]]] = []) -> None:
-        self._q_key = q_key
-        self._next_q = next_q
-        self._options = options or []
-        self._strict_options = strict_options
-        self._validators = validators or []
-        self._note = ''
-
-    @property
-    def note(self) -> str:
-        if not self._note and self._options and self._strict_options:
-            return '\nВыбери ответ из списка'
-        return self._note
-
-    @note.setter
-    def note(self, note: str) -> None:
-        self._note = note
+    SAME: Final[int] = -1
+    END: Final[int] = -2
 
     @property
     def text(self) -> str:
-        return self._question_source[self._q_key] + self.note
+        return ''
 
+    @property
+    def options(self) -> List[str]:
+        return []
+
+    def reply(self, answer: str) -> Optional[Self]:
+        return None
+
+
+class BaseQuestion(IQuestion):
+
+    def __init__(self,
+                 text: str,
+                 next_q: Callable[[str], object] | object) -> None:
+        self._text = text
+        self._next_q = next_q
+    
     def __str__(self) -> str:
         return self.text
+
+    @property
+    def text(self) -> str:
+        return str(self._text)
+
+    def reply(self, answer: str) -> object:
+        return self._next_q(answer) if callable(self._next_q) else self._next_q
+    
+
+class OptionQuestion(BaseQuestion):
+
+    def __init__(self,
+                 text: str, 
+                 next_q: Callable[[str], object] | object,
+                 options: List[str]) -> None:
+        super().__init__(text, next_q)
+        self._options = options
+        self._note = ''
+
+    @property
+    def text(self) -> str:
+        if self._note:
+            return self._text + '\n' + self._note
+        return self._text
 
     @property
     def options(self) -> List[str]:
@@ -42,29 +59,54 @@ class QuestionBase:
             return self._options()
         return self._options
 
-    def _validate_reply_options(self, answer) -> bool:
-        if not (self.options and self._strict_options):
-            return True
+
+class StrictOptionQuestion(OptionQuestion):
         
-        if answer.lower() in [pa.lower() for pa in self.options]:
-            return True
+    def reply(self, answer: str) -> Self | None:
+        if answer.lower() not in [opt.lower() for opt in self.options]:
+            self._note = 'Ответом являются только варианты: ' + ', '.join(self.options)
+            return self.SAME
 
-        self.note = '\nОтветом являются только варианты: ' + ', '.join(self.options)
-        return False
-
-    def reply(self, answer: str) -> Optional[Self]:
-        if not self._validate_reply_options(answer):
-            return self._q_key
-
-        for validator in self._validators:
-            if not validator(self, answer):
-                return self._q_key
-        
-        return self._next_q(self, answer) if callable(self._next_q) else self._next_q
+        return super().reply(answer)
 
 
-def question_class_factory(question_source: dict[str, str]):
-    class CustomQuestion(QuestionBase):
-        _question_source = question_source
+class CustomValidatedQuestion(OptionQuestion):
 
-    return CustomQuestion
+    def __init__(self, 
+                 text: str, 
+                 next_q: Callable[[str], object] | object, 
+                 options: List[str]) -> None:
+        super().__init__(text, next_q, options)
+        self._validations = []
+
+    def add_validation(self, validation: Callable[[str], bool], err_msg: str | None = None):
+        self._validations.append((validation, err_msg))
+
+    def reply(self, answer: str) -> str | None:
+        for validation, err_msg in self._validations:
+            if not validation(answer):
+                self._note = err_msg
+                return self.SAME
+
+        return super().reply(answer)
+
+def create_question(
+    text: str, 
+    next_q: Callable[[str], object] | object, 
+    options: List[str] = [],
+    strict_options: bool = True,
+    validations: List[Tuple[Callable[[str], bool], str]] = [],
+) -> IQuestion:
+
+    if validations:
+        question = CustomValidatedQuestion(text, next_q, options)
+        for validation, err_msg in validations:
+            question.add_validation(validation, err_msg)
+    elif strict_options and options:
+        question = StrictOptionQuestion(text, next_q, options)
+    elif options:
+        question = OptionQuestion(text, next_q, options)
+    else:
+        question = BaseQuestion(text, next_q)
+
+    return question

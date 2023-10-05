@@ -5,7 +5,10 @@ import sqlite3
 
 from telegram import Update
 
-from bot import SURVEY_JOB_PREFIX, configure_app, reminder
+from bot import configure_app
+from constants import ALARM_JOB_PREFIX, DB_FOLDER, DB_PATH
+import db_queries as db
+from jobs import reminder as job_reminder
 
 
 logging.basicConfig(
@@ -17,10 +20,6 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-DB_FOLDER = 'db_instance'
-DB_PATH = f'{DB_FOLDER}/hpj_bot.db'
-
-
 def main():
     app = configure_app()
 
@@ -29,40 +28,19 @@ def main():
         os.mkdir(DB_FOLDER)
 
     conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    table_exists = cur.execute('''
-        SELECT EXISTS(
-            SELECT 1
-            FROM sqlite_schema
-            WHERE type = 'table' AND name = 'journal'
-        )
-    ''').fetchone()[0]
 
-    if not table_exists:
-        cur.execute('''
-            CREATE TABLE journal(chat_id BIGINT PRIMARY KEY, entries TEXT, alarm TEXT);
-        ''')
-        cur.execute('''
-            CREATE UNIQUE INDEX journal_chat_id ON journal(chat_id);
-        ''')
+    if not db.check_table_exists(conn):
+        db.create_base_table(conn)
 
-        conn.commit()
-
-    chat_alarms = cur.execute('''
-        SELECT chat_id, alarm
-        FROM journal
-        WHERE alarm IS NOT NULL
-    ''')
-
-    for row in chat_alarms.fetchall():
+    for row in db.get_all_chat_alarms(conn):
         try:
-            chat_id = row[0]
-            time = datetime.strptime(row[1], '%H:%M%z').timetz()
-            job_name = f'{SURVEY_JOB_PREFIX}{chat_id}'
-            app.job_queue.run_daily(reminder, time, name=job_name, chat_id=chat_id)
+            chat_id = row['chat_id']
+            time = datetime.strptime(row['alarm'], '%H:%M%z').timetz()
+            job_name = f'{ALARM_JOB_PREFIX}{chat_id}'
+            app.job_queue.run_daily(job_reminder, time, name=job_name, chat_id=chat_id)
 
-        except (ValueError, IndexError) as ex:
-            logging.warning(f'Job setting failed: {ex}')
+        except (ValueError, KeyError) as ex:
+            logging.warning(f'Alarm job setting failed: {ex}')
             raise
 
     app.bot_data['db_conn'] = conn

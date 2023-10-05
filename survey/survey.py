@@ -1,51 +1,37 @@
 from enum import Enum, auto
 from typing import Final
-from survey.question_base import QuestionBase
-
-
-class SurveyStatus(Enum):
-    ONGOING = auto()
-    ABORTED = auto()
-    FINISHED = auto()
+from survey.question_base import IQuestion
 
 
 class Survey:
 
-    ONGOING: Final = SurveyStatus.ONGOING
-    ABORTED: Final = SurveyStatus.ABORTED
-    FINISHED: Final = SurveyStatus.FINISHED
-
-    def __init__(self, questions: dict[str, str], initial_question_key: str) -> None:
+    def __init__(self, questions: dict[object, IQuestion], initial_question_key: str) -> None:
         self._questions = questions
         self._question_stack = []
         self._replies = {}
         self._question_key = initial_question_key
-        self._status = self.ONGOING
     
     @property
     def question(self):
         return self._questions.get(self._question_key)
 
     @question.setter
-    def question(self, question: QuestionBase):
+    def question(self, question: object):
+        if question == IQuestion.SAME:
+            return
+        
+        if question == IQuestion.END:
+            self._question_key = None
+            return
+        
         if self._question_key != question:
             self._question_stack.append(self._question_key)
         self._question_key = question
-
-    @property
-    def status(self) -> SurveyStatus:
-        return self._status
-
-    @property
-    def question_options(self):
-        return self.question.options
 
     def reply(self, answer: str) -> None:
         answer = answer.strip()
         self._replies[self._question_key] = answer
         self.question = self.question.reply(answer)
-        if not self.question:
-            self._status = self.FINISHED
 
     @property
     def replies(self):
@@ -58,22 +44,21 @@ class Survey:
             ...
 
     def stop(self):
-        if self._status == self.ONGOING:
-            self._question_key = None
-            self._status = self.ABORTED
-      
-    def has_questions(self) -> bool:
-        return self._status is self.ONGOING
+        self._question_key = None
+    
+    @property
+    def isongoing(self) -> bool:
+        return self.question is not None
 
 '''
 Пример прохождения опроса:
 
 def main_loop():
-    survey = Survey(questions, init_question, key)
-    while survey.has_questions():
+    survey = Survey(questions, init_question)
+    while survey.isongoing:
         print(survey.question)
-        if survey.question_options:
-            print(survey.question_options)
+        if survey.question.options:
+            print(survey.question.options)
         
         val = input('answer = ')
         if val == '/back':
