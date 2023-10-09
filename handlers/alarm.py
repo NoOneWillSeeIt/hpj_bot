@@ -5,7 +5,7 @@ from telegram import ReplyKeyboardRemove, Update
 from telegram.ext import BaseHandler, CommandHandler, ContextTypes, ConversationHandler, \
     MessageHandler, filters
 
-from commands import HPJCommands
+from commands.commands import HPJCommands
 from constants import ALARM_JOB_PREFIX, MSK_TIMEZONE_OFFSET
 import db_queries as db
 from jobs import reminder as job_reminder
@@ -22,9 +22,9 @@ class AlarmHandlers:
             await update.message.reply_text(
                 'Нужно указать время по московскому часовому поясу в виде чч:мм.')
             return ALARM_CONVO
-        
+
         return ConversationHandler.END
-            
+
     @classmethod
     async def alarm_convo(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not await cls._set_alarm(update, context):
@@ -32,7 +32,7 @@ class AlarmHandlers:
                 f'Неверный формат, попробуй ещё раз нажать /{HPJCommands.ALARM}')
 
         return ConversationHandler.END
-    
+
     @classmethod
     async def _set_alarm(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
         try:
@@ -55,7 +55,7 @@ class AlarmHandlers:
                 f'Оповещения будут приходить в {time.strftime("%H:%M")}')
         except (ValueError, IndexError):
             return False
-        
+
         return True
 
 
@@ -65,7 +65,7 @@ class AlarmHandlers:
         remove_job_if_exists(f'{ALARM_JOB_PREFIX}{chat_id}', context)
         await db.clear_alarm(context.bot_data, chat_id)
         await update.message.reply_text(
-            'Больше уведомлений не будет. Спасибо за использование, выздоравливай!', 
+            'Больше уведомлений не будет. Спасибо за использование, выздоравливай!',
             reply_markup=ReplyKeyboardRemove()
         )
 

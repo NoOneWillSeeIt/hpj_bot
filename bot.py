@@ -4,7 +4,7 @@ from telegram.ext import Application, ApplicationBuilder, PersistenceInput, Pick
 
 from constants import PERSISTENCE_PATH
 from handlers import all_handlers
-from menu_commands import DefaultMenuCommands
+from commands.menu_commands import DefaultMenuCommands
 
 
 async def post_init(bot_data: dict, application: Application) -> None:
@@ -20,7 +20,7 @@ def configure_app() -> Application:
                         PicklePersistence(filepath=PERSISTENCE_PATH,
                                           store_data=PersistenceInput(bot_data=False))) \
                     .build()
-    
+
     application.add_handlers(all_handlers)
 
     return application

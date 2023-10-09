@@ -1,5 +1,5 @@
 from telegram import BotCommand
-from commands import HPJCommands, default_command_description
+from commands.commands import HPJCommands, default_command_description
 
 
 class MenuCommands:
@@ -15,7 +15,7 @@ class MenuCommands:
             BotCommand(command, self._command_description[command])
             for command in self.command_list
         ]
-    
+
 
 class DefaultMenuCommands(MenuCommands):
 

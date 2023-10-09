@@ -5,9 +5,9 @@ from telegram.ext import BaseHandler, CommandHandler, ContextTypes, Conversation
     MessageHandler, filters
 
 import db_queries as db
-from commands import HPJCommands
+from commands.commands import HPJCommands
 from hpj_questions import get_head_pain_survey, prepare_answers_for_db
-from menu_commands import DefaultMenuCommands, SurveyMenuCommands
+from commands.menu_commands import DefaultMenuCommands, SurveyMenuCommands
 from survey import Survey
 
 

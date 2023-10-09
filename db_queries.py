@@ -57,15 +57,29 @@ async def write_entry(bot_data: dict, chat_id: int, entry: dict):
     conn = get_db_conn_from_bot_data(bot_data)
     date = entry.get(Questions.Date.name)
     await _awaitable_execute(
-        conn.cursor(), 
-        f'''
-        INSERT INTO journal(chat_id, entries) VALUES(:chat_id, json_object(:date, :entry))
-        ON CONFLICT(chat_id) DO UPDATE SET entries = json_set(coalesce(entries, '{{}}'), '$."{date}"', :entry);
-        ''', 
-        {'chat_id': chat_id, 
-         'date': date, 
-         'entry': json.dumps(entry, ensure_ascii=False)})
-    
+        conn.cursor(),
+        '''
+        INSERT INTO journal(chat_id, entries)
+        VALUES
+        (
+            :chat_id,
+            json_object(
+                :date,
+                json(:entry)
+            )
+        ) ON CONFLICT(chat_id) DO
+        UPDATE
+        SET
+        entries = json_set(
+            coalesce(entries, '{}'),
+            '$.' || '"' || :date || '"', -- to make key like $."23.04" and not split into '23':{'04'
+            json(:entry)
+        );
+        ''',
+        {'chat_id': chat_id,
+         'date': date,
+         'entry': json.dumps(entry, ensure_ascii=False)}
+    )
     logging.info(f'DB saved new entry for {chat_id}')
     conn.commit()
 

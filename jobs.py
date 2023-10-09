@@ -1,6 +1,6 @@
 from telegram.ext import ContextTypes
 
-from commands import HPJCommands
+from commands.commands import HPJCommands
 
 
 async def reminder(context: ContextTypes.DEFAULT_TYPE):
