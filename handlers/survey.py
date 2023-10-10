@@ -21,7 +21,7 @@ class SurveyHandlers:
         survey = context.chat_data.get('survey')
 
         if not survey:
-            await context.bot.set_my_commands(SurveyMenuCommands().menu, 
+            await context.bot.set_my_commands(SurveyMenuCommands().menu,
                                               BotCommandScopeChat(update.message.chat_id))
             survey = get_head_pain_survey()
             context.chat_data['survey'] = survey
@@ -30,13 +30,13 @@ class SurveyHandlers:
             survey.reply(update.message.text)
 
         if not survey.isongoing:
-            await context.bot.set_my_commands(DefaultMenuCommands().menu, 
+            await context.bot.set_my_commands(DefaultMenuCommands().menu,
                                               BotCommandScopeChat(update.message.chat_id))
-            
-            await db.write_entry(context.bot_data, update.message.chat_id, 
+
+            await db.write_entry(context.bot_data, update.message.chat_id,
                                  prepare_answers_for_db(survey.replies))
-            
-            await update.message.reply_text('Сохранено. Выздоравливай!', 
+
+            await update.message.reply_text('Сохранено. Выздоравливай!',
                                             reply_markup=ReplyKeyboardRemove())
             del context.chat_data['survey']
             return ConversationHandler.END
@@ -52,11 +52,10 @@ class SurveyHandlers:
         if survey:
             survey.stop()
             del context.chat_data['survey']
-        
-        await context.bot.set_my_commands(DefaultMenuCommands().menu, 
-                                          BotCommandScopeChat(update.message.chat_id))
 
-        await update.message.reply_text('Приходи заполнять журнал, когда будет удобно!', 
+        await context.bot.delete_my_commands(BotCommandScopeChat(update.message.chat_id))
+
+        await update.message.reply_text('Приходи заполнять журнал, когда будет удобно!',
                                         reply_markup=get_survey_keyboard(survey))
 
         return ConversationHandler.END
@@ -77,7 +76,7 @@ class SurveyHandlers:
             del context.chat_data['survey']
 
         await SurveyHandlers.convo(update, context)
-    
+
 
 def get_survey_keyboard(survey: Survey):
     if survey and survey.isongoing and survey.question.options:
@@ -93,7 +92,7 @@ def get_handlers() -> List[BaseHandler]:
             entry_points=[CommandHandler(HPJCommands.ADD_ENTRY, SurveyHandlers.convo)],
             states={
                 SURVEY_CONVO: [
-                    MessageHandler(filters.TEXT & ~filters.COMMAND, SurveyHandlers.convo), 
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, SurveyHandlers.convo),
                     CommandHandler(HPJCommands.BACK, SurveyHandlers.back),
                     CommandHandler(HPJCommands.RESTART, SurveyHandlers.restart),
                 ],

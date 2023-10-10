@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * {
+            font-family: "Roboto Regular";
+            font-style: normal;
+            font-size: 14px;
+            color: rgb(0, 0, 0);
+        }
+        header {
+            margin-top: 2em;
+            margin-left: 2em;
+        }
+        table {
+            border-top-right-radius: 5px;
+            border-top-left-radius: 3px;
+            border-collapse: collapse;
+            overflow: hidden;
+            box-shadow: 0 0 4px;
+        }
+        table tr:first-child td {       /* Первая строка с датами */
+            background-color: rgb(43, 182, 195);
+            color: white;
+            text-align: center;
+        }
+        table tr:first-child td:first-child {   /* Верхняя ячейка вопросов, пересекается с предыдущим стилем */
+            text-align: start;
+        }
+        table tr td:last-child {        /* У крайних с права ячеек убираем правую границу */
+            border-right: none;
+        }
+        table tr:nth-of-type(odd) {     /* Подсветка строки через одну */
+            background-color: #f4ebff;
+        }
+        table tr td:first-child {       /* Левый столбец с вопросами */
+            background-color: rgb(157, 115, 247);
+            color: white;
+            min-width: 200px;
+            max-width: 300px;
+        }
+        td {
+            border-bottom: 1px solid #5e5e5e;
+            border-right: 1px solid #5e5e5e;
+            padding: 0.5em;
+            text-align: start;
+            max-width: 250px;
+        }
+    </style>
+</head>
+<header>
+    <p>Начало заполнения дневника: {{ start_date }}</p>
+    <p>Окончание заполнения дневника: {{ end_date }}</p>
+</header>
+<body>
+    <table>
+        {% for question in question_list %}
+        <tr>
+            {% for replies in replies_list %}
+                <td>{{ replies.get(question, '-') }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

@@ -6,6 +6,7 @@ class HPJCommands(StrEnum):
     HELP = auto()  # currently unused
     ALARM = auto()
     ADD_ENTRY = 'add'
+    LOAD = auto()
     CANCEL = auto()
     RESTART = auto()
     BACK = auto()
@@ -16,6 +17,7 @@ default_command_description = {
     HPJCommands.START: 'Сказать привет',
     HPJCommands.ALARM: 'Установить напоминание',
     HPJCommands.ADD_ENTRY: 'Добавить новую запись в журнал',
+    HPJCommands.LOAD: 'Выгрузить дневник',
     HPJCommands.CANCEL: 'Отменить подписку на уведы',
     HPJCommands.RESTART: 'Начать заново',
     HPJCommands.BACK: 'Вернуться к предыдущему вопросу',

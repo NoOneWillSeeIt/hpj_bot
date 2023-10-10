@@ -7,9 +7,11 @@ import sqlite3
 from telegram import Update
 
 from bot import configure_app, post_init
-from constants import ALARM_JOB_PREFIX, DB_FOLDER, DB_PATH
+from constants import ALARM_JOB_PREFIX, DB_FOLDER, DB_PATH, JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE, \
+    OutputFileFormats
 import db_queries as db
 from jobs import reminder as job_reminder
+from journal_view import HTMLGenerator
 
 
 logging.basicConfig(
@@ -25,7 +27,7 @@ def main():
     app = configure_app()
 
     dirs = os.listdir()
-    if not DB_FOLDER in dirs:
+    if DB_FOLDER not in dirs:
         os.mkdir(DB_FOLDER)
 
     conn = sqlite3.connect(DB_PATH)
@@ -43,10 +45,14 @@ def main():
         except (ValueError, KeyError) as ex:
             logging.warning(f'Alarm job setting failed: {ex}')
             raise
-    
+
     bot_data = {}
     bot_data['db_conn'] = conn
     bot_data['db_path'] = DB_PATH
+    file_generators = {
+        OutputFileFormats.HTML: HTMLGenerator(JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE),
+    }
+    bot_data['file_generators'] = file_generators
 
     app.post_init = functools.partial(post_init, bot_data)
     app.run_polling(allowed_updates=Update.ALL_TYPES)
