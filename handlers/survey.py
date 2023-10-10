@@ -7,7 +7,7 @@ from telegram.ext import BaseHandler, CommandHandler, ContextTypes, Conversation
 import db_queries as db
 from commands.commands import HPJCommands
 from hpj_questions import get_head_pain_survey, prepare_answers_for_db
-from commands.menu_commands import DefaultMenuCommands, SurveyMenuCommands
+from commands.menu_commands import SurveyMenuCommands
 from survey import Survey
 
 
@@ -30,14 +30,13 @@ class SurveyHandlers:
             survey.reply(update.message.text)
 
         if not survey.isongoing:
-            await context.bot.set_my_commands(DefaultMenuCommands().menu,
-                                              BotCommandScopeChat(update.message.chat_id))
+            chat_id = update.message.chat_id
+            await context.bot.delete_my_commands(BotCommandScopeChat(chat_id))
 
-            await db.write_entry(context.bot_data, update.message.chat_id,
-                                 prepare_answers_for_db(survey.replies))
+            await db.write_entry(context.bot_data, chat_id, prepare_answers_for_db(survey.replies))
 
             await update.message.reply_text('Сохранено. Выздоравливай!',
-                                            reply_markup=ReplyKeyboardRemove())
+                                            reply_markup=get_survey_keyboard(survey))
             del context.chat_data['survey']
             return ConversationHandler.END
 
