@@ -58,7 +58,6 @@ class AlarmHandlers:
 
         return True
 
-
     @classmethod
     async def cancel(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id = update.message.chat_id

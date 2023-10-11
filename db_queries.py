@@ -90,7 +90,7 @@ async def read_entries(bot_data: dict, chat_id: str) -> Optional[dict]:
     cursor = await _awaitable_execute(
         conn.cursor(),
         '''
-        SELECT entries
+        SELECT coalesce(entries, '{}')
         FROM journal
         WHERE chat_id = :chat_id;
         ''',

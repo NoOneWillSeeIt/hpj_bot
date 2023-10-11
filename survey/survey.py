@@ -1,5 +1,3 @@
-from enum import Enum, auto
-from typing import Final
 from survey.question_base import IQuestion
 
 
@@ -10,7 +8,7 @@ class Survey:
         self._question_stack = []
         self._replies = {}
         self._question_key = initial_question_key
-    
+
     @property
     def question(self):
         return self._questions.get(self._question_key)
@@ -19,11 +17,11 @@ class Survey:
     def question(self, question: object):
         if question == IQuestion.SAME:
             return
-        
+
         if question == IQuestion.END:
             self._question_key = None
             return
-        
+
         if self._question_key != question:
             self._question_stack.append(self._question_key)
         self._question_key = question
@@ -45,10 +43,11 @@ class Survey:
 
     def stop(self):
         self._question_key = None
-    
+
     @property
     def isongoing(self) -> bool:
         return self.question is not None
+
 
 '''
 Пример прохождения опроса:
@@ -59,7 +58,7 @@ def main_loop():
         print(survey.question)
         if survey.question.options:
             print(survey.question.options)
-        
+
         val = input('answer = ')
         if val == '/back':
             survey.go_back()
@@ -68,7 +67,7 @@ def main_loop():
             survey.stop()
         else:
             survey.reply(val)
-    
+
 if __name__ == '__main__':
     main_loop()
 '''

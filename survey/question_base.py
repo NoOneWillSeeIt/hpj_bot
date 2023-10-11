@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import Callable, Final, List, Optional, Self, Tuple
 
+
 class IQuestion(ABC):
 
     SAME: Final[int] = -1
@@ -25,7 +26,7 @@ class BaseQuestion(IQuestion):
                  next_q: Callable[[str], object] | object) -> None:
         self._text = text
         self._next_q = next_q
-    
+
     def __str__(self) -> str:
         return self.text
 
@@ -35,12 +36,12 @@ class BaseQuestion(IQuestion):
 
     def reply(self, answer: str) -> object:
         return self._next_q(answer) if callable(self._next_q) else self._next_q
-    
+
 
 class OptionQuestion(BaseQuestion):
 
     def __init__(self,
-                 text: str, 
+                 text: str,
                  next_q: Callable[[str], object] | object,
                  options: List[str]) -> None:
         super().__init__(text, next_q)
@@ -61,7 +62,7 @@ class OptionQuestion(BaseQuestion):
 
 
 class StrictOptionQuestion(OptionQuestion):
-        
+
     def reply(self, answer: str) -> Self | None:
         if answer.lower() not in [opt.lower() for opt in self.options]:
             self._note = 'Ответом являются только варианты: ' + ', '.join(self.options)
@@ -72,9 +73,9 @@ class StrictOptionQuestion(OptionQuestion):
 
 class CustomValidatedQuestion(OptionQuestion):
 
-    def __init__(self, 
-                 text: str, 
-                 next_q: Callable[[str], object] | object, 
+    def __init__(self,
+                 text: str,
+                 next_q: Callable[[str], object] | object,
                  options: List[str]) -> None:
         super().__init__(text, next_q, options)
         self._validations = []
@@ -90,9 +91,10 @@ class CustomValidatedQuestion(OptionQuestion):
 
         return super().reply(answer)
 
+
 def create_question(
-    text: str, 
-    next_q: Callable[[str], object] | object, 
+    text: str,
+    next_q: Callable[[str], object] | object,
     options: List[str] = [],
     strict_options: bool = True,
     validations: List[Tuple[Callable[[str], bool], str]] = [],

@@ -31,6 +31,10 @@ class LoadJournalHandlers:
 
         generator = context.bot_data['file_generators'][query.data]
         entries = await db.read_entries(context.bot_data, chat_id)
+        if not entries:
+            await query.edit_message_text('У меня нет твоих записей ¯\\_(ツ)_/¯', reply_markup=None)
+            return
+
         out_file_bytes = await generator.generate_file(Questions.to_dict(), entries)
         filename = generator.gen_filename(str(chat_id))
 
