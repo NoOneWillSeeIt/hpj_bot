@@ -6,8 +6,7 @@ import sqlite3
 from typing import Optional
 
 import aiosqlite
-
-from hpj_questions import Questions
+from constants import TIME_FORMAT
 
 
 async def get_db_conn_from_bot_data(bot_data: dict) -> aiosqlite.Connection:
@@ -24,7 +23,7 @@ async def get_db_conn_from_bot_data(bot_data: dict) -> aiosqlite.Connection:
 
 async def write_alarm(bot_data: dict, chat_id: int, time: time):
     conn = await get_db_conn_from_bot_data(bot_data)
-    time_str = time.strftime('%H:%M%z')
+    time_str = time.strftime(TIME_FORMAT)
     await conn.execute(
         '''
         INSERT INTO journal(chat_id, alarm) VALUES(:chat_id, :alarm)
@@ -50,9 +49,8 @@ async def clear_alarm(bot_data: dict, chat_id: int):
     await conn.commit()
 
 
-async def write_entry(bot_data: dict, chat_id: int, entry: dict):
+async def write_entry(bot_data: dict, chat_id: int, key: str, entry: dict):
     conn = await get_db_conn_from_bot_data(bot_data)
-    date = entry.get(Questions.Date.name)
     await conn.execute(
         '''
         INSERT INTO journal(chat_id, entries)
@@ -60,7 +58,7 @@ async def write_entry(bot_data: dict, chat_id: int, entry: dict):
         (
             :chat_id,
             json_object(
-                :date,
+                :key,
                 json(:entry)
             )
         ) ON CONFLICT(chat_id) DO
@@ -68,12 +66,12 @@ async def write_entry(bot_data: dict, chat_id: int, entry: dict):
         SET
         entries = json_set(
             coalesce(entries, '{}'),
-            '$.' || '"' || :date || '"', -- to make key like $."23.04" and not split into '23':{'04'
+            '$.' || '"' || :key || '"', -- to make key like $."23.04" and not split into '23':{'04'
             json(:entry)
         );
         ''',
         {'chat_id': chat_id,
-         'date': date,
+         'key': key,
          'entry': json.dumps(entry, ensure_ascii=False)}
     )
     logging.info(f'DB saved new entry for {chat_id}')
@@ -91,8 +89,9 @@ async def read_entries(bot_data: dict, chat_id: str) -> Optional[dict]:
         {'chat_id': chat_id}
     )
     str_entries = await cursor.fetchone()
+    str_entries = str_entries[0] if str_entries else '{}'
     logging.info(f'DB read entries for {chat_id}')
-    return json.loads(str_entries[0])
+    return json.loads(str_entries)
 
 
 def check_table_exists(conn: sqlite3.Connection) -> bool:
@@ -106,15 +105,12 @@ def check_table_exists(conn: sqlite3.Connection) -> bool:
 
 
 def create_base_table(conn: sqlite3.Connection) -> None:
-    cur = conn.cursor()
-    cur.execute('''
+    conn.execute('''
         CREATE TABLE journal(chat_id BIGINT PRIMARY KEY, entries TEXT, alarm TEXT);
     ''')
-    cur.execute('''
+    conn.execute('''
         CREATE UNIQUE INDEX journal_chat_id ON journal(chat_id);
     ''')
-
-    cur.close()
     conn.commit()
 
 

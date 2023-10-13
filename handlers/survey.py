@@ -33,7 +33,7 @@ class SurveyHandlers:
             chat_id = update.message.chat_id
             await context.bot.delete_my_commands(BotCommandScopeChat(chat_id))
 
-            await db.write_entry(context.bot_data, chat_id, prepare_answers_for_db(survey.replies))
+            await db.write_entry(context.bot_data, chat_id, *prepare_answers_for_db(survey.replies))
 
             await update.message.reply_text('Сохранено. Выздоравливай!',
                                             reply_markup=get_survey_keyboard(survey))

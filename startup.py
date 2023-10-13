@@ -8,7 +8,7 @@ from telegram import Update
 
 from bot import configure_app, post_init
 from constants import ALARM_JOB_PREFIX, DB_FOLDER, DB_PATH, JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE, \
-    OutputFileFormats
+    TIME_FORMAT, OutputFileFormats
 import db_queries as db
 from jobs import reminder as job_reminder
 from journal_view import HTMLGenerator
@@ -38,7 +38,7 @@ def main():
     for row in db.get_all_chat_alarms(conn):
         try:
             chat_id = row['chat_id']
-            time = datetime.strptime(row['alarm'], '%H:%M%z').timetz()
+            time = datetime.strptime(row['alarm'], TIME_FORMAT).timetz()
             job_name = f'{ALARM_JOB_PREFIX}{chat_id}'
             app.job_queue.run_daily(job_reminder, time, name=job_name, chat_id=chat_id)
 

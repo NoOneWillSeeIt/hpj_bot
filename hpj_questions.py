@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from enum import StrEnum
-from typing import List
+from typing import List, Tuple
 from survey import Survey, IQuestion, create_question
 
 
@@ -103,13 +103,13 @@ def build_questions() -> dict[str, IQuestion]:
     return questions_description
 
 
-def get_head_pain_survey():
+def get_head_pain_survey() -> Survey:
     return Survey(build_questions(), Questions.Date)
 
 
-def prepare_answers_for_db(replies: dict):
+def prepare_answers_for_db(replies: dict) -> Tuple[str, dict]:
     result = {}
     for strenum_key, reply in replies.items():
         result[strenum_key.name] = reply
 
-    return result
+    return replies[Questions.Date], result
