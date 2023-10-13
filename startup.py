@@ -46,13 +46,13 @@ def main():
             logging.warning(f'Alarm job setting failed: {ex}')
             raise
 
+    conn.close()
+
     bot_data = {}
-    bot_data['db_conn'] = conn
     bot_data['db_path'] = DB_PATH
-    file_generators = {
+    bot_data['file_generators'] = {
         OutputFileFormats.HTML: HTMLGenerator(JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE),
     }
-    bot_data['file_generators'] = file_generators
 
     app.post_init = functools.partial(post_init, bot_data)
     app.run_polling(allowed_updates=Update.ALL_TYPES)

@@ -5,30 +5,27 @@ import logging
 import sqlite3
 from typing import Optional
 
+import aiosqlite
+
 from hpj_questions import Questions
 
 
-def get_db_conn_from_bot_data(bot_data: dict) -> sqlite3.Connection:
+async def get_db_conn_from_bot_data(bot_data: dict) -> aiosqlite.Connection:
     try:
         conn = bot_data['db_conn']
-        conn.cursor()
+        await conn.cursor()
     except Exception as ex:
         logging.warning(f'DB conn was dead. Trying to restore. ex: {ex}')
-        conn = sqlite3.connect(bot_data['db_path'])
+        conn = await aiosqlite.connect(bot_data['db_path'])
         bot_data['db_conn'] = conn
 
     return conn
 
 
-async def _awaitable_execute(cursor: sqlite3.Cursor, sql: str, params: dict) -> sqlite3.Cursor:
-    return cursor.execute(sql, params)
-
-
 async def write_alarm(bot_data: dict, chat_id: int, time: time):
-    conn = get_db_conn_from_bot_data(bot_data)
+    conn = await get_db_conn_from_bot_data(bot_data)
     time_str = time.strftime('%H:%M%z')
-    await _awaitable_execute(
-        conn.cursor(),
+    await conn.execute(
         '''
         INSERT INTO journal(chat_id, alarm) VALUES(:chat_id, :alarm)
         ON CONFLICT(chat_id) DO UPDATE SET alarm = excluded.alarm;
@@ -36,13 +33,12 @@ async def write_alarm(bot_data: dict, chat_id: int, time: time):
         {'chat_id': chat_id, 'alarm': time_str}
     )
     logging.info(f'DB saved alarm for {chat_id} on {time_str}')
-    conn.commit()
+    await conn.commit()
 
 
 async def clear_alarm(bot_data: dict, chat_id: int):
-    conn = get_db_conn_from_bot_data(bot_data)
-    await _awaitable_execute(
-        conn.cursor(),
+    conn = await get_db_conn_from_bot_data(bot_data)
+    await conn.execute(
         '''
         UPDATE journal
         SET alarm = NULL
@@ -51,14 +47,13 @@ async def clear_alarm(bot_data: dict, chat_id: int):
         {'chat_id': chat_id}
     )
     logging.info(f'DB dropped alarm for {chat_id}')
-    conn.commit()
+    await conn.commit()
 
 
 async def write_entry(bot_data: dict, chat_id: int, entry: dict):
-    conn = get_db_conn_from_bot_data(bot_data)
+    conn = await get_db_conn_from_bot_data(bot_data)
     date = entry.get(Questions.Date.name)
-    await _awaitable_execute(
-        conn.cursor(),
+    await conn.execute(
         '''
         INSERT INTO journal(chat_id, entries)
         VALUES
@@ -82,13 +77,12 @@ async def write_entry(bot_data: dict, chat_id: int, entry: dict):
          'entry': json.dumps(entry, ensure_ascii=False)}
     )
     logging.info(f'DB saved new entry for {chat_id}')
-    conn.commit()
+    await conn.commit()
 
 
 async def read_entries(bot_data: dict, chat_id: str) -> Optional[dict]:
-    conn = get_db_conn_from_bot_data(bot_data)
-    cursor = await _awaitable_execute(
-        conn.cursor(),
+    conn = await get_db_conn_from_bot_data(bot_data)
+    cursor = await conn.execute(
         '''
         SELECT coalesce(entries, '{}')
         FROM journal
@@ -96,9 +90,9 @@ async def read_entries(bot_data: dict, chat_id: str) -> Optional[dict]:
         ''',
         {'chat_id': chat_id}
     )
-    str_entries = cursor.fetchone()[0]
+    str_entries = await cursor.fetchone()
     logging.info(f'DB read entries for {chat_id}')
-    return json.loads(str_entries)
+    return json.loads(str_entries[0])
 
 
 def check_table_exists(conn: sqlite3.Connection) -> bool:
