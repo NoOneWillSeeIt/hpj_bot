@@ -4,7 +4,7 @@ from telegram import BotCommandScopeChat, ReplyKeyboardMarkup, ReplyKeyboardRemo
 from telegram.ext import BaseHandler, CommandHandler, ContextTypes, ConversationHandler, \
     MessageHandler, filters
 
-import db_queries as db
+import db.aio_queries as db
 from commands.commands import HPJCommands
 from hpj_questions import get_head_pain_survey, prepare_answers_for_db
 from commands.menu_commands import SurveyMenuCommands

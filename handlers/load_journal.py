@@ -5,7 +5,7 @@ from telegram.ext import BaseHandler, CommandHandler, ContextTypes, CallbackQuer
 
 from commands.commands import HPJCommands
 from constants import FLASK_PIC_PATH, OutputFileFormats
-import db_queries as db
+import db.aio_queries as db
 from hpj_questions import Questions
 
 

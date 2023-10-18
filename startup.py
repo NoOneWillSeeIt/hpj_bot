@@ -9,7 +9,7 @@ from telegram import Update
 from bot import configure_app, post_init
 from constants import ALARM_JOB_PREFIX, DB_FOLDER, DB_PATH, JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE, \
     TIME_FORMAT, OutputFileFormats
-import db_queries as db
+import db.queries as db
 from jobs import reminder as job_reminder
 from journal_view import HTMLGenerator
 

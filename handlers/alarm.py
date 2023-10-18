@@ -7,7 +7,7 @@ from telegram.ext import BaseHandler, CommandHandler, ContextTypes, Conversation
 
 from commands.commands import HPJCommands
 from constants import ALARM_JOB_PREFIX, MSK_TIMEZONE_OFFSET
-import db_queries as db
+import db.aio_queries as db
 from jobs import reminder as job_reminder
 
 

@@ -5,10 +5,10 @@ import unittest
 import aiosqlite
 from constants import MSK_TIMEZONE_OFFSET, TIME_FORMAT
 
-import db_queries
+import db.aio_queries as asyncdb
 
 
-class DbCrudOpsTest(unittest.IsolatedAsyncioTestCase):
+class AsyncDbCrudOpsTest(unittest.IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self) -> None:
         self.conn = await aiosqlite.connect(':memory:')
@@ -22,16 +22,16 @@ class DbCrudOpsTest(unittest.IsolatedAsyncioTestCase):
         }
 
     async def test_get_db_conn(self):
-        conn = await db_queries.get_db_conn_from_bot_data({'db_conn': self.conn})
+        conn = await asyncdb.get_db_conn_from_bot_data({'db_conn': self.conn})
         self.assertIs(self.conn, conn)
-        conn = await db_queries.get_db_conn_from_bot_data({'db_path': ':memory:'})
+        conn = await asyncdb.get_db_conn_from_bot_data({'db_path': ':memory:'})
         self.assertTrue(conn.is_alive())
 
     async def test_write_alarm(self):
         time = datetime.now(tz=MSK_TIMEZONE_OFFSET).timetz()
         time = time.replace(second=0, microsecond=0)
         for msg in ['write alarm first time', 'overwrite existing alarm']:
-            await db_queries.write_alarm(self.bot_data, 1, time)
+            await asyncdb.write_alarm(self.bot_data, 1, time)
             cur = await self.conn.execute('''
                 select alarm from journal where chat_id = 1
             ''')
@@ -43,9 +43,9 @@ class DbCrudOpsTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_clear_alarm(self):
         time = datetime.now().timetz()
-        await db_queries.write_alarm(self.bot_data, 1, time)
+        await asyncdb.write_alarm(self.bot_data, 1, time)
         for msg in ['clear existing alarm', 'clear non existing alarm']:
-            await db_queries.clear_alarm(self.bot_data, 1)
+            await asyncdb.clear_alarm(self.bot_data, 1)
             cur = await self.conn.execute('''
                 select alarm from journal where chat_id = 1
             ''')
@@ -57,7 +57,7 @@ class DbCrudOpsTest(unittest.IsolatedAsyncioTestCase):
         key = '23.04'
         data = {'sample': 'text'}
         for msg in ['write new entry', 'overwrite existing entry']:
-            await db_queries.write_entry(self.bot_data, 1, key, data)
+            await asyncdb.write_entry(self.bot_data, 1, key, data)
             cur = await self.conn.execute('select entries from journal where chat_id = 1')
             res = await cur.fetchone()
             parsed_entries = json.loads(res[0])
@@ -71,9 +71,9 @@ class DbCrudOpsTest(unittest.IsolatedAsyncioTestCase):
         data = {'sample': 'text'}
         expected = {}
         for msg in ['read non existing entry', 'read existing entry']:
-            entries = await db_queries.read_entries(self.bot_data, 1)
+            entries = await asyncdb.read_entries(self.bot_data, 1)
             self.assertTrue(isinstance(entries, dict), msg)
             self.assertEqual(entries, expected, msg)
 
-            await db_queries.write_entry(self.bot_data, 1, key, data)
+            await asyncdb.write_entry(self.bot_data, 1, key, data)
             expected = {key: data}
