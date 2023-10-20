@@ -7,7 +7,11 @@ class IFileGenerator(ABC):
     _name_prefix: str = 'hpj'
 
     @abstractmethod
-    async def generate_file(self, questions: dict, replies: dict) -> bytes:
+    async def generate_async(self, questions: dict, replies: dict) -> bytes:
+        ...
+
+    @abstractmethod
+    def generate(self, questions: dict, replies: dict) -> bytes:
         ...
 
     @property

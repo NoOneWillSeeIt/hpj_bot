@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import List, Tuple
+from constants import ENTRY_KEY_FORMAT
 from survey import Survey, IQuestion, create_question
 
 
@@ -32,7 +33,7 @@ class Questions(StrEnum):
 
 def validate_date(answer: str) -> bool:
     try:
-        datetime.strptime(answer, '%d.%m')
+        datetime.strptime(answer, ENTRY_KEY_FORMAT)
     except ValueError:
         return False
 
@@ -42,8 +43,7 @@ def validate_date(answer: str) -> bool:
 def suggest_date() -> List[str]:
     today = datetime.today()
     yesterday = today - timedelta(days=1)
-    format_ = '%d.%m'
-    return [yesterday.strftime(format_), today.strftime(format_)]
+    return [yesterday.strftime(ENTRY_KEY_FORMAT), today.strftime(ENTRY_KEY_FORMAT)]
 
 
 def had_pain_next_q(answer: str) -> str:

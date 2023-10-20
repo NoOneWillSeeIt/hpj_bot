@@ -1,17 +1,14 @@
-from datetime import datetime
-import functools
+from datetime import datetime, timedelta
 import logging
 import os
 import sqlite3
 
 from telegram import Update
 
-from bot import configure_app, post_init
-from constants import ALARM_JOB_PREFIX, DB_FOLDER, DB_PATH, JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE, \
-    TIME_FORMAT, OutputFileFormats
+from bot import configure_app
+from constants import ALARM_JOB_PREFIX, DB_FOLDER, DB_PATH, MSK_TIMEZONE_OFFSET, TIME_FORMAT
 import db.queries as db
-from jobs import reminder as job_reminder
-from journal_view import HTMLGenerator
+from jobs import reminder, weekly_report
 
 
 logging.basicConfig(
@@ -21,6 +18,12 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
+
+
+def nearest_weekday(day=0):
+    today = datetime.today()
+    diff = timedelta(days=(day - today.weekday()) % 7)
+    return today + diff
 
 
 def main():
@@ -40,7 +43,7 @@ def main():
             chat_id = row['chat_id']
             time = datetime.strptime(row['alarm'], TIME_FORMAT).timetz()
             job_name = f'{ALARM_JOB_PREFIX}{chat_id}'
-            app.job_queue.run_daily(job_reminder, time, name=job_name, chat_id=chat_id)
+            app.job_queue.run_daily(reminder, time, name=job_name, chat_id=chat_id)
 
         except (ValueError, KeyError) as ex:
             logging.warning(f'Alarm job setting failed: {ex}')
@@ -48,13 +51,11 @@ def main():
 
     conn.close()
 
-    bot_data = {}
-    bot_data['db_path'] = DB_PATH
-    bot_data['file_generators'] = {
-        OutputFileFormats.HTML: HTMLGenerator(JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE),
-    }
+    nearest_monday = nearest_weekday(0)
+    nearest_monday.replace(hour=20, minute=0, second=0, microsecond=0, tzinfo=MSK_TIMEZONE_OFFSET)
+    app.job_queue.run_repeating(weekly_report, timedelta(days=7), first=nearest_monday,
+                                name='weekly_report')
 
-    app.post_init = functools.partial(post_init, bot_data)
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 

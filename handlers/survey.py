@@ -4,10 +4,9 @@ from telegram import BotCommandScopeChat, ReplyKeyboardMarkup, ReplyKeyboardRemo
 from telegram.ext import BaseHandler, CommandHandler, ContextTypes, ConversationHandler, \
     MessageHandler, filters
 
-import db.aio_queries as db
-from commands.commands import HPJCommands
+import db.aio_queries as asyncdb
+from commands import HPJCommands, SurveyMenuCommands
 from hpj_questions import get_head_pain_survey, prepare_answers_for_db
-from commands.menu_commands import SurveyMenuCommands
 from survey import Survey
 
 
@@ -33,7 +32,8 @@ class SurveyHandlers:
             chat_id = update.message.chat_id
             await context.bot.delete_my_commands(BotCommandScopeChat(chat_id))
 
-            await db.write_entry(context.bot_data, chat_id, *prepare_answers_for_db(survey.replies))
+            await asyncdb.write_entry(context.bot_data, chat_id,
+                                      *prepare_answers_for_db(survey.replies))
 
             await update.message.reply_text('Сохранено. Выздоравливай!',
                                             reply_markup=get_survey_keyboard(survey))

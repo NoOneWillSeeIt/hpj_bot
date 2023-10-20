@@ -14,6 +14,7 @@ FLASK_PIC_PATH = f'{STATIC_PATH}/flask.png'
 HEALTH_PIC_PATH = f'{STATIC_PATH}/health.png'
 
 MSK_TIMEZONE_OFFSET = timezone(timedelta(hours=3))
+ENTRY_KEY_FORMAT = '%d.%m'
 TIME_FORMAT = '%H:%M%z'
 
 ALARM_JOB_PREFIX = 'alarm'

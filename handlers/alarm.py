@@ -5,10 +5,10 @@ from telegram import ReplyKeyboardRemove, Update
 from telegram.ext import BaseHandler, CommandHandler, ContextTypes, ConversationHandler, \
     MessageHandler, filters
 
-from commands.commands import HPJCommands
+from commands import HPJCommands
 from constants import ALARM_JOB_PREFIX, MSK_TIMEZONE_OFFSET
-import db.aio_queries as db
-from jobs import reminder as job_reminder
+import db.aio_queries as asyncdb
+from jobs import reminder
 
 
 ALARM_CONVO = 0
@@ -47,9 +47,9 @@ class AlarmHandlers:
             job_name = f'{ALARM_JOB_PREFIX}{chat_id}'
             remove_job_if_exists(job_name, context)
 
-            context.job_queue.run_daily(job_reminder, time, name=job_name, chat_id=chat_id)
+            context.job_queue.run_daily(reminder, time, name=job_name, chat_id=chat_id)
 
-            await db.write_alarm(context.bot_data, chat_id, time)
+            await asyncdb.write_alarm(context.bot_data, chat_id, time)
 
             await update.message.reply_text(
                 f'Оповещения будут приходить в {time.strftime("%H:%M")}')
@@ -62,7 +62,7 @@ class AlarmHandlers:
     async def cancel(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id = update.message.chat_id
         remove_job_if_exists(f'{ALARM_JOB_PREFIX}{chat_id}', context)
-        await db.clear_alarm(context.bot_data, chat_id)
+        await asyncdb.clear_alarm(context.bot_data, chat_id)
         await update.message.reply_text(
             'Больше уведомлений не будет. Спасибо за использование, выздоравливай!',
             reply_markup=ReplyKeyboardRemove()

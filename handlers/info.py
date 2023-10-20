@@ -3,7 +3,7 @@ from typing import List
 from telegram import Update
 from telegram.ext import BaseHandler, CommandHandler, ContextTypes
 
-from commands.commands import HPJCommands
+from commands import HPJCommands
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):

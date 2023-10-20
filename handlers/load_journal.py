@@ -3,9 +3,9 @@ from typing import List
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import BaseHandler, CommandHandler, ContextTypes, CallbackQueryHandler
 
-from commands.commands import HPJCommands
+from commands import HPJCommands
 from constants import FLASK_PIC_PATH, OutputFileFormats
-import db.aio_queries as db
+import db.aio_queries as asyncdb
 from hpj_questions import Questions
 
 
@@ -30,12 +30,12 @@ class LoadJournalHandlers:
         chat_id = query.message.chat_id
 
         generator = context.bot_data['file_generators'][query.data]
-        entries = await db.read_entries(context.bot_data, chat_id)
+        entries = await asyncdb.read_entries(context.bot_data, chat_id)
         if not entries:
             await query.edit_message_text('У меня нет твоих записей ¯\\_(ツ)_/¯', reply_markup=None)
             return
 
-        out_file_bytes = await generator.generate_file(Questions.to_dict(), entries)
+        out_file_bytes = await generator.generate_async(Questions.to_dict(), entries)
         filename = generator.gen_filename(str(chat_id))
 
         await query.answer()

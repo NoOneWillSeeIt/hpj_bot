@@ -1,22 +1,7 @@
 import json
 import logging
 import sqlite3
-
-
-def read_entries(chat_id: str, db_path: str) -> dict:
-    conn = sqlite3.connect(db_path)
-    cursor = conn.execute(
-        '''
-        SELECT coalesce(entries, '{}')
-        FROM journal
-        WHERE chat_id = :chat_id;
-        ''',
-        {'chat_id': chat_id}
-    )
-    str_entries = cursor.fetchone()
-    str_entries = str_entries[0] if str_entries else '{}'
-    logging.info(f'DB read entries for {chat_id}')
-    return json.loads(str_entries)
+from typing import List
 
 
 def check_table_exists(conn: sqlite3.Connection) -> bool:
@@ -49,3 +34,46 @@ def get_all_chat_alarms(conn: sqlite3.Connection) -> dict:
     ''')
 
     return chat_alarms.fetchall()
+
+
+def read_entries(db_path: str, chat_id: str) -> dict:
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.execute(
+            '''
+            SELECT coalesce(entries, '{}')
+            FROM journal
+            WHERE chat_id = :chat_id;
+            ''',
+            {'chat_id': chat_id}
+        )
+        str_entries = cursor.fetchone()
+        str_entries = str_entries[0] if str_entries else '{}'
+        logging.info(f'DB read entries for {chat_id}')
+    return json.loads(str_entries)
+
+
+def mark_entries_for_delete(db_path: str, chat_id: str, keys: List[str]):
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            '''
+            WITH cte AS (
+                SELECT json_each.value AS key
+                FROM json_each(:keys)
+            )
+            UPDATE journal
+            SET entries = json_set(
+                json_set(
+                    entries,
+                    '$.' || '"del_' || cte.key || '"',
+                    json(entries -> '$.' || '"' || cte.key || '"')
+                ),
+                '$.' || '"' || cte.key || '"',
+                NULL
+            )
+            FROM cte
+            WHERE chat_id = :chat_id;
+            ''',
+            {'chat_id': chat_id,
+             'keys': keys}
+        )
+        logging.info(f'DB marked deleted entries for dates {keys} and chat_id {chat_id}')
