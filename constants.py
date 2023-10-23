@@ -1,5 +1,6 @@
 from datetime import timedelta, timezone
 from enum import StrEnum, auto
+import os
 
 
 DB_FOLDER = 'db_instance'
@@ -18,6 +19,8 @@ ENTRY_KEY_FORMAT = '%d.%m'
 TIME_FORMAT = '%H:%M%z'
 
 ALARM_JOB_PREFIX = 'alarm'
+
+DEVELOPER_CHAT_ID = os.environ.get('DEVELOPER_CHAT_ID')
 
 
 class OutputFileFormats(StrEnum):

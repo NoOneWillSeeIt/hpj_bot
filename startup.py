@@ -52,7 +52,7 @@ def main():
     conn.close()
 
     nearest_monday = nearest_weekday(0)
-    nearest_monday.replace(hour=20, minute=0, second=0, microsecond=0, tzinfo=MSK_TIMEZONE_OFFSET)
+    nearest_monday.replace(hour=23, minute=0, second=0, microsecond=0, tzinfo=MSK_TIMEZONE_OFFSET)
     app.job_queue.run_repeating(weekly_report, timedelta(days=7), first=nearest_monday,
                                 name='weekly_report')
 
