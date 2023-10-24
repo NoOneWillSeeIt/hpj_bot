@@ -44,9 +44,10 @@ class LoadJournalHandlers:
                                         filename=filename, thumbnail=FLASK_PIC_PATH)
 
 
-def get_handlers() -> List[BaseHandler]:
-    load_handler = CommandHandler(HPJCommands.LOAD, LoadJournalHandlers.load)
-    file_formats_patterns = '^' + '|'.join(ext.value for ext in OutputFileFormats) + '$'
-    load_callback_handler = CallbackQueryHandler(LoadJournalHandlers.load_choose,
-                                                 pattern=file_formats_patterns)
-    return [load_handler, load_callback_handler]
+LOAD_HANDLER = CommandHandler(HPJCommands.LOAD, LoadJournalHandlers.load)
+
+
+LOAD_CALLBACK_HANDLER = CallbackQueryHandler(
+    LoadJournalHandlers.load_choose,
+    pattern='^' + '|'.join(ext.value for ext in OutputFileFormats) + '$'
+)

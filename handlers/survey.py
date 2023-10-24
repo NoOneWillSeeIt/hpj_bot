@@ -85,19 +85,16 @@ def get_survey_keyboard(survey: Survey):
     return ReplyKeyboardRemove()
 
 
-def get_handlers() -> List[BaseHandler]:
-    return [
-        ConversationHandler(
-            entry_points=[CommandHandler(HPJCommands.ADD_ENTRY, SurveyHandlers.convo)],
-            states={
-                SURVEY_CONVO: [
-                    MessageHandler(filters.TEXT & ~filters.COMMAND, SurveyHandlers.convo),
-                    CommandHandler(HPJCommands.BACK, SurveyHandlers.back),
-                    CommandHandler(HPJCommands.RESTART, SurveyHandlers.restart),
-                ],
-            },
-            fallbacks=[CommandHandler(HPJCommands.STOP, SurveyHandlers.stop)],
-            persistent=True,
-            name='survey_convo',
-        )
-    ]
+SURVEY_CONVO_HANDLER = ConversationHandler(
+    entry_points=[CommandHandler(HPJCommands.ADD_ENTRY, SurveyHandlers.convo)],
+    states={
+        SURVEY_CONVO: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, SurveyHandlers.convo),
+            CommandHandler(HPJCommands.BACK, SurveyHandlers.back),
+            CommandHandler(HPJCommands.RESTART, SurveyHandlers.restart),
+        ],
+    },
+    fallbacks=[CommandHandler(HPJCommands.STOP, SurveyHandlers.stop)],
+    persistent=True,
+    name='survey_convo',
+)

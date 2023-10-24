@@ -5,7 +5,7 @@ from telegram.ext import Application, ApplicationBuilder, PersistenceInput, Pick
 
 from constants import DB_PATH, JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE, PERSISTENCE_PATH, \
     OutputFileFormats
-from handlers import all_handlers, error_handler
+from handlers import ALL_COMMAND_HANDLERS, ERROR_HANDLER
 from commands import DefaultMenuCommands
 from journal_view.html_generator import HTMLGenerator
 
@@ -33,7 +33,7 @@ def configure_app() -> Application:
                     .post_init(post_init) \
                     .build()
 
-    application.add_handlers(all_handlers)
-    application.add_error_handler(error_handler)
+    application.add_handlers(ALL_COMMAND_HANDLERS)
+    application.add_error_handler(ERROR_HANDLER)
 
     return application

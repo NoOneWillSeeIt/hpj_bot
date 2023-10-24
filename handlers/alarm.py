@@ -77,17 +77,17 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> None:
         job.schedule_removal()
 
 
-def get_handlers() -> List[BaseHandler]:
-    alarm_handler = ConversationHandler(
-        entry_points=[CommandHandler(HPJCommands.ALARM, AlarmHandlers.alarm)],
-        states={
-            ALARM_CONVO: [
-                MessageHandler(filters.TEXT, AlarmHandlers.alarm_convo),
-            ]
-        },
-        fallbacks=[],
-        persistent=True,
-        name='alarm_convo',
-    )
-    cancel_handler = CommandHandler(HPJCommands.CANCEL, AlarmHandlers.cancel)
-    return [alarm_handler, cancel_handler]
+ALARM_CONVO_HANDLER = ConversationHandler(
+    entry_points=[CommandHandler(HPJCommands.ALARM, AlarmHandlers.alarm)],
+    states={
+        ALARM_CONVO: [
+            MessageHandler(filters.TEXT, AlarmHandlers.alarm_convo),
+        ]
+    },
+    fallbacks=[],
+    persistent=True,
+    name='alarm_convo',
+)
+
+
+ALARM_CANCEL_HANDLER = CommandHandler(HPJCommands.CANCEL, AlarmHandlers.cancel)

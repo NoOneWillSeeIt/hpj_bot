@@ -1,4 +1,3 @@
-
 import unittest
 
 from survey import create_question, IQuestion, Survey

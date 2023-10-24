@@ -2,24 +2,21 @@ from datetime import datetime
 import json
 import unittest
 
-import aiosqlite
 from constants import MSK_TIMEZONE_OFFSET, TIME_FORMAT
-
 import db.aio_queries as asyncdb
+from tests.utils.common import create_test_db
 
 
 class AsyncDbCrudOpsTest(unittest.IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self) -> None:
-        self.conn = await aiosqlite.connect(':memory:')
-        await self.conn.execute('''
-            CREATE TABLE journal(chat_id BIGINT PRIMARY KEY, entries TEXT, alarm TEXT);
-        ''')
-        await self.conn.commit()
+        db_path, conn = await create_test_db()
+        self.conn = conn
         self.bot_data = {
-            'db_conn': self.conn,
-            'db_path': ':memory:',
+            'db_conn': conn,
+            'db_path': db_path,
         }
+        return await super().asyncSetUp()
 
     async def test_get_db_conn(self):
         conn = await asyncdb.get_db_conn_from_bot_data({'db_conn': self.conn})
