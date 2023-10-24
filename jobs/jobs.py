@@ -16,7 +16,7 @@ async def reminder(context: ContextTypes.DEFAULT_TYPE):
             text=f'Привет, время заполнить журнал. Напиши /{HPJCommands.ADD_ENTRY} и вперёд!'
         )
     else:
-        logging.info(f'ALARM CANCELLED BY SURVEY {context.chat_data}')
+        logging.info(f'Alarm cancelled by survey {context.chat_data}')
 
 
 async def weekly_report(context: ContextTypes.DEFAULT_TYPE):
@@ -31,6 +31,10 @@ async def weekly_report(context: ContextTypes.DEFAULT_TYPE):
 
         for future_result in asyncio.as_completed(tasks):
             report = await future_result
+            if not report.file_bytes:
+                logging.info(f'{report.chat_id} has no entries from last week')
+                continue
+
             message = await context.bot.send_document(
                 report.chat_id, document=report.file_bytes,
                 caption=f'Твой дневник за неделю {report.period}', disable_notification=True,

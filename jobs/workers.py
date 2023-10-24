@@ -36,5 +36,9 @@ def create_weekly_report(chat_id: str, db_path: str) -> WeeklyReport:
         chat_id=chat_id,
         period=period,
         filename=html_gen.gen_filename(period),
-        file_bytes=html_gen.generate(Questions.to_dict(), result_entries)
+        file_bytes=(
+            html_gen.generate(Questions.to_dict(), result_entries)
+            if result_entries
+            else None
+        )
     )
