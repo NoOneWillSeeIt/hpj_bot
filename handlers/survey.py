@@ -14,7 +14,7 @@ class SurveyHandlers:
 
     @classmethod
     async def start(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        if asyncdb.is_new_user(context.bot_data, update.message.chat_id):
+        if await asyncdb.is_new_user(context.bot_data, update.message.chat_id):
             await update.message.reply_text(
                 'Опрос можно перезапустить, вернуться к предыдущему вопросу или остановить, чтобы '
                 'вернуться позже. Для управления опросом пользуйся меню команд\n↓'
