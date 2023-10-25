@@ -1,9 +1,7 @@
 from datetime import datetime
-from typing import List
 
 from telegram import ReplyKeyboardRemove, Update
-from telegram.ext import BaseHandler, CommandHandler, ContextTypes, ConversationHandler, \
-    MessageHandler, filters
+from telegram.ext import CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 
 from commands import HPJCommands
 from constants import ALARM_JOB_PREFIX, MSK_TIMEZONE_OFFSET

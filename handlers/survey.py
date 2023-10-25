@@ -1,8 +1,5 @@
-from typing import List
-
 from telegram import BotCommandScopeChat, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
-from telegram.ext import BaseHandler, CommandHandler, ContextTypes, ConversationHandler, \
-    MessageHandler, filters
+from telegram.ext import CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 
 import db.aio_queries as asyncdb
 from commands import HPJCommands, SurveyMenuCommands
@@ -14,6 +11,15 @@ SURVEY_CONVO = 0
 
 
 class SurveyHandlers:
+
+    @classmethod
+    async def start(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if asyncdb.is_new_user(context.bot_data, update.message.chat_id):
+            await update.message.reply_text(
+                'Опрос можно перезапустить, вернуться к предыдущему вопросу или остановить, чтобы '
+                'вернуться позже. Для управления опросом пользуйся меню команд\n↓'
+            )
+        await SurveyHandlers.convo(update, context)
 
     @classmethod
     async def convo(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -86,7 +92,7 @@ def get_survey_keyboard(survey: Survey):
 
 
 SURVEY_CONVO_HANDLER = ConversationHandler(
-    entry_points=[CommandHandler(HPJCommands.ADD_ENTRY, SurveyHandlers.convo)],
+    entry_points=[CommandHandler(HPJCommands.ADD_ENTRY, SurveyHandlers.start)],
     states={
         SURVEY_CONVO: [
             MessageHandler(filters.TEXT & ~filters.COMMAND, SurveyHandlers.convo),

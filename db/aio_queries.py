@@ -103,3 +103,20 @@ async def read_chats_with_entries(bot_data: dict) -> list:
     logging.info('DB read entries all chats with entries')
     chat_ids = await cursor.fetchall()
     return [tup[0] for tup in chat_ids]
+
+
+async def is_new_user(bot_data: dict, chat_id: str) -> bool:
+    conn = await get_db_conn_from_bot_data(bot_data)
+    cursor = await conn.execute(
+        '''
+        SELECT NOT EXISTS(
+            SELECT 1
+            FROM journal
+            WHERE chat_id = :chat_id
+                AND entries IS NOT NULL
+        )
+        ''',
+        {'chat_id': chat_id}
+    )
+    result = await cursor.fetchone()
+    return bool(result[0])

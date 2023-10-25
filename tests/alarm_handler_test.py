@@ -67,7 +67,7 @@ class AlarmHandlersTest(unittest.IsolatedAsyncioTestCase):
             cur = await self.conn.execute('select alarm from journal where chat_id = :chat_id',
                                           {'chat_id': TEST_CHAT_ID})
             res = await cur.fetchone()
-            self.assertIsNone(res[0] if res else res, msg)
+            self.assertIsNone(res[0], msg)
 
     async def test_alarm_convo(self):
         await send_command(self.app, f'/{HPJCommands.ALARM}')

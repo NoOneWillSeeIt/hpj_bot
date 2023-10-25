@@ -74,3 +74,12 @@ class AsyncDbCrudOpsTest(unittest.IsolatedAsyncioTestCase):
 
             await asyncdb.write_entry(self.bot_data, 1, key, data)
             expected = {key: data}
+
+    async def test_is_new_user(self):
+        self.assertTrue(await asyncdb.is_new_user(self.bot_data, 1))
+
+    async def test_not_new_user(self):
+        key = '23.04'
+        data = {'sample': 'text'}
+        await asyncdb.write_entry(self.bot_data, 1, key, data)
+        self.assertFalse(await asyncdb.is_new_user(self.bot_data, 1))
