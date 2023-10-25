@@ -1,7 +1,5 @@
-from typing import List
-
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import BaseHandler, CommandHandler, ContextTypes, CallbackQueryHandler
+from telegram.ext import CommandHandler, ContextTypes, CallbackQueryHandler
 
 from commands import HPJCommands
 from constants import FLASK_PIC_PATH, OutputFileFormats
@@ -31,6 +29,7 @@ class LoadJournalHandlers:
 
         generator = context.bot_data['file_generators'][query.data]
         entries = await asyncdb.read_entries(context.bot_data, chat_id)
+        await query.answer()
         if not entries:
             await query.edit_message_text('У меня нет твоих записей ¯\\_(ツ)_/¯', reply_markup=None)
             return
@@ -38,7 +37,6 @@ class LoadJournalHandlers:
         out_file_bytes = await generator.generate_async(Questions.to_dict(), entries)
         filename = generator.gen_filename(str(chat_id))
 
-        await query.answer()
         await query.edit_message_text('Вот те записи, что у меня есть:', reply_markup=None)
         await context.bot.send_document(chat_id, document=out_file_bytes,
                                         filename=filename, thumbnail=FLASK_PIC_PATH)

@@ -24,6 +24,10 @@ class AlarmHandlersTest(unittest.IsolatedAsyncioTestCase):
         await self.app.initialize()
         return await super().asyncSetUp()
 
+    async def asyncTearDown(self) -> None:
+        self.app.shutdown()
+        return await super().asyncTearDown()
+
     async def _check_convo_ready_to_start(self):
         new_update = Update(-1, make_command(self.app.bot, f'/{HPJCommands.ALARM}'))
         return ALARM_CONVO_HANDLER.check_update(new_update)

@@ -1,4 +1,5 @@
 import os
+from typing import Dict
 import aiosqlite
 
 from telegram.ext import Application, ApplicationBuilder, PersistenceInput, PicklePersistence
@@ -7,19 +8,27 @@ from constants import DB_PATH, JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE, PERSISTENC
     OutputFileFormats
 from handlers import ALL_COMMAND_HANDLERS, ERROR_HANDLER
 from commands import DefaultMenuCommands
-from journal_view.html_generator import HTMLGenerator
+from journal_view import HTMLGenerator, IFileGenerator
 
 
-async def post_init(application: Application) -> None:
-    conn = await aiosqlite.connect(DB_PATH)
-    bot_data = {
-        'db_conn': conn,
-        'db_path': DB_PATH,
+def filegens() -> Dict[str, Dict[str, IFileGenerator]]:
+    return {
         'file_generators': {
             OutputFileFormats.HTML: HTMLGenerator(JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE),
         },
     }
-    application.bot_data.update(bot_data)
+
+
+async def post_init(application: Application) -> None:
+    conn = await aiosqlite.connect(DB_PATH)
+    db_data = {
+        'db_conn': conn,
+        'db_path': DB_PATH,
+    }
+    application.bot_data.update({
+        **db_data,
+        **filegens(),
+    })
     await application.bot.set_my_commands(DefaultMenuCommands().menu)
 
 
