@@ -1,5 +1,4 @@
 from datetime import datetime
-import unittest
 
 from telegram import Update
 
@@ -7,28 +6,15 @@ from commands.commands import HPJCommands
 from constants import MSK_TIMEZONE_OFFSET, TIME_FORMAT
 
 from handlers import ALARM_CONVO_HANDLER, ALARM_CANCEL_HANDLER
-from tests.utils.common import create_test_db
-from tests.utils.ptb_app import TEST_CHAT_ID, make_app, make_command, send_command, send_message
+from tests.utils.ptb_app import TEST_CHAT_ID, make_command, send_command, send_message
+from tests.utils.test_cases import AsyncTelegramBotTestCase
 
 
-class AlarmHandlersTest(unittest.IsolatedAsyncioTestCase):
+class AlarmHandlersTest(AsyncTelegramBotTestCase):
 
-    async def asyncSetUp(self) -> None:
-        self.app = make_app()
-        self.app.add_handlers([ALARM_CONVO_HANDLER, ALARM_CANCEL_HANDLER])
-        db_path, conn = await create_test_db()
-        self.app.bot_data['db_path'] = db_path
-        self.app.bot_data['db_conn'] = conn
-        self.conn = conn
+    _handlers = [ALARM_CONVO_HANDLER, ALARM_CANCEL_HANDLER]
 
-        await self.app.initialize()
-        return await super().asyncSetUp()
-
-    async def asyncTearDown(self) -> None:
-        self.app.shutdown()
-        return await super().asyncTearDown()
-
-    async def _check_convo_ready_to_start(self):
+    def _check_convo_ready_to_start(self):
         new_update = Update(-1, make_command(self.app.bot, f'/{HPJCommands.ALARM}'))
         return ALARM_CONVO_HANDLER.check_update(new_update)
 

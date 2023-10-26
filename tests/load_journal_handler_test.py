@@ -1,5 +1,5 @@
+from collections import namedtuple
 import json
-import unittest
 from unittest.mock import AsyncMock
 
 from telegram import Update
@@ -8,66 +8,57 @@ from commands.commands import HPJCommands
 
 from handlers import LOAD_CALLBACK_HANDLER, LOAD_HANDLER
 from hpj_questions import Questions, prepare_answers_for_db
-from tests.utils.common import create_test_db
-from tests.utils.ptb_app import TEST_CHAT_ID, AsyncResultCacheMock, make_app, make_text_message, \
-    send_callback, send_command
+from tests.utils.ptb_app import TEST_CHAT_ID, make_text_message, send_callback, send_command
+from tests.utils.test_cases import AsyncResultCacheMock, AsyncTelegramBotTestCase
 
 
-class LoadJournalHandlersTest(unittest.IsolatedAsyncioTestCase):
+BotMocks = namedtuple(
+    'BotMocks', ['answer', 'send', 'edit', 'send_doc']
+)
+
+
+class LoadJournalHandlersTest(AsyncTelegramBotTestCase):
+
+    _handlers = [LOAD_HANDLER, LOAD_CALLBACK_HANDLER]
 
     async def asyncSetUp(self) -> None:
-        self.app = make_app()
-        self.app.add_handlers([LOAD_HANDLER, LOAD_CALLBACK_HANDLER])
-        db_path, conn = await create_test_db()
-        self.app.bot_data['db_path'] = db_path
-        self.app.bot_data['db_conn'] = conn
+        await super().asyncSetUp()
         self.app.bot_data.update(filegens())
-        self.conn = conn
-
-        await self.app.initialize()
-        self.app.bot._unfreeze()
-        return await super().asyncSetUp()
-
-    async def asyncTearDown(self) -> None:
-        self.app.shutdown()
-        return await super().asyncTearDown()
 
     async def test_load_callback_wrong_data(self):
         self.assertIsNone(
             LOAD_CALLBACK_HANDLER.check_update(Update(-1, make_text_message(self.app.bot, 'xmlns')))
         )
 
+    def _create_bot_method_mocks(self) -> BotMocks:
+        answer = AsyncMock(return_value=None)
+        self.app.bot.answer_callback_query = answer
+
+        send = AsyncResultCacheMock(wraps=self.app.bot.send_message)
+        self.app.bot.send_message = send
+
+        edit = AsyncMock(wraps=self.app.bot.edit_message_text)
+        self.app.bot.edit_message_text = edit
+
+        send_doc = AsyncMock(wraps=self.app.bot.send_document)
+        self.app.bot.send_document = send_doc
+
+        return BotMocks(answer, send, edit, send_doc)
+
     async def test_load_callback_no_entries(self):
-        answer_mock = AsyncMock(return_value=None)
-        self.app.bot.answer_callback_query = answer_mock
-
-        send_amock = AsyncResultCacheMock(wraps=self.app.bot.send_message)
-        self.app.bot.send_message = send_amock
-
-        edit_amock = AsyncMock(wraps=self.app.bot.edit_message_text)
-        self.app.bot.edit_message_text = edit_amock
+        mocks = self._create_bot_method_mocks()
 
         await send_command(self.app, f'/{HPJCommands.LOAD}')
-        await send_callback(self.app, send_amock.result_cache[-1], 'html')
+        await send_callback(self.app, mocks.send.result_cache[-1], 'html')
 
-        answer_mock.assert_awaited()
+        mocks.answer.assert_awaited()
         self.assertEqual(
             'У меня нет твоих записей ¯\\_(ツ)_/¯'.lower(),
-            edit_amock.await_args.kwargs['text'].lower()
+            mocks.edit.await_args.kwargs['text'].lower()
         )
 
     async def test_load_callback_has_entries(self):
-        answer_mock = AsyncMock(return_value=None)
-        self.app.bot.answer_callback_query = answer_mock
-
-        send_amock = AsyncResultCacheMock(wraps=self.app.bot.send_message)
-        self.app.bot.send_message = send_amock
-
-        edit_amock = AsyncMock(wraps=self.app.bot.edit_message_text)
-        self.app.bot.edit_message_text = edit_amock
-
-        send_doc_amock = AsyncMock(wraps=self.app.bot.send_document)
-        self.app.bot.send_document = send_doc_amock
+        mocks = self._create_bot_method_mocks()
 
         entry = {}
         key, entry = prepare_answers_for_db({
@@ -95,11 +86,11 @@ class LoadJournalHandlersTest(unittest.IsolatedAsyncioTestCase):
         await self.conn.commit()
 
         await send_command(self.app, f'/{HPJCommands.LOAD}')
-        await send_callback(self.app, send_amock.result_cache[-1], 'html')
+        await send_callback(self.app, mocks.send.result_cache[-1], 'html')
 
-        answer_mock.assert_awaited()
+        mocks.answer.assert_awaited()
         self.assertEqual(
             'Вот те записи, что у меня есть:'.lower(),
-            edit_amock.await_args.kwargs['text'].lower()
+            mocks.edit.await_args.kwargs['text'].lower()
         )
-        send_doc_amock.assert_awaited()
+        mocks.send_doc.assert_awaited()

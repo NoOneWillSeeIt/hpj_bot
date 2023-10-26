@@ -19,7 +19,7 @@ class SurveyHandlers:
                 'Опрос можно перезапустить, вернуться к предыдущему вопросу или остановить, чтобы '
                 'вернуться позже. Для управления опросом пользуйся меню команд\n↓'
             )
-        await SurveyHandlers.convo(update, context)
+        return await SurveyHandlers.convo(update, context)
 
     @classmethod
     async def convo(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -80,13 +80,14 @@ class SurveyHandlers:
         if survey:
             del context.chat_data['survey']
 
-        await SurveyHandlers.convo(update, context)
+        return await SurveyHandlers.convo(update, context)
 
 
 def get_survey_keyboard(survey: Survey):
     if survey and survey.isongoing and survey.question.options:
-        keyboard = [[ans for ans in survey.question.options]]
-        return ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+        return ReplyKeyboardMarkup(
+            [survey.question.options], resize_keyboard=True, one_time_keyboard=True
+        )
 
     return ReplyKeyboardRemove()
 

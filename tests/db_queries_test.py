@@ -1,22 +1,12 @@
 from datetime import datetime
 import json
-import unittest
 
 from constants import MSK_TIMEZONE_OFFSET, TIME_FORMAT
 import db.aio_queries as asyncdb
-from tests.utils.common import create_test_db
+from tests.utils.test_cases import AsyncDBTestCase
 
 
-class AsyncDbCrudOpsTest(unittest.IsolatedAsyncioTestCase):
-
-    async def asyncSetUp(self) -> None:
-        db_path, conn = await create_test_db()
-        self.conn = conn
-        self.bot_data = {
-            'db_conn': conn,
-            'db_path': db_path,
-        }
-        return await super().asyncSetUp()
+class AsyncDbCrudOpsTest(AsyncDBTestCase):
 
     async def test_get_db_conn(self):
         conn = await asyncdb.get_db_conn_from_bot_data({'db_conn': self.conn})
