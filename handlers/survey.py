@@ -13,7 +13,7 @@ SURVEY_CONVO = 0
 class SurveyHandlers:
 
     @classmethod
-    async def start(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def start(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         if await asyncdb.is_new_user(context.bot_data, update.message.chat_id):
             await update.message.reply_text(
                 'Опрос можно перезапустить, вернуться к предыдущему вопросу или остановить, чтобы '
@@ -22,7 +22,7 @@ class SurveyHandlers:
         return await SurveyHandlers.convo(update, context)
 
     @classmethod
-    async def convo(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def convo(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         survey = context.chat_data.get('survey')
 
         if not survey:
@@ -52,7 +52,7 @@ class SurveyHandlers:
         return SURVEY_CONVO
 
     @classmethod
-    async def stop(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def stop(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         survey = context.chat_data['survey']
         if survey:
             survey.stop()
@@ -66,7 +66,7 @@ class SurveyHandlers:
         return ConversationHandler.END
 
     @classmethod
-    async def back(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def back(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         survey = context.chat_data.get('survey')
         survey.go_back()
         await update.message.reply_text(
@@ -75,7 +75,7 @@ class SurveyHandlers:
         return SURVEY_CONVO
 
     @classmethod
-    async def restart(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def restart(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         survey = context.chat_data['survey']
         if survey:
             del context.chat_data['survey']
@@ -83,7 +83,7 @@ class SurveyHandlers:
         return await SurveyHandlers.convo(update, context)
 
 
-def get_survey_keyboard(survey: Survey):
+def get_survey_keyboard(survey: Survey) -> ReplyKeyboardMarkup | ReplyKeyboardRemove:
     if survey and survey.isongoing and survey.question.options:
         return ReplyKeyboardMarkup(
             [survey.question.options], resize_keyboard=True, one_time_keyboard=True

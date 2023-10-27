@@ -10,4 +10,4 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                     'поставить напоминание через команду /alarm чч:мм')
 
 
-START_HANDLER = CommandHandler(HPJCommands.START, start),
+START_HANDLER = CommandHandler(HPJCommands.START, start)

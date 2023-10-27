@@ -16,7 +16,7 @@ class Questions(StrEnum):
     Nature = 'Характер головной боли'
     PhysicalTrigger = 'Ухудшалась ли головная боль при физической активности?' \
         ' (подъём по лестнице и др.)'
-    PainIntensity = 'Какова была в целом интенсивность головной боли?'
+    PainIntensity = 'Оцени по 10-балльной шкале интенсивность головной боли'
     HadSickness = 'Была ли у тебя тошнота?'
     HadVomit = 'Была ли рвота?'
     LightIrritation = 'Тебя раздражал свет?'
@@ -38,6 +38,15 @@ def validate_date(answer: str) -> bool:
         return False
 
     return True
+
+
+def validate_pain_intensity(answer: str) -> bool:
+    try:
+        num = int(answer)
+    except ValueError:
+        return False
+
+    return 1 <= num <= 10
 
 
 def suggest_date() -> List[str]:
@@ -79,7 +88,9 @@ def build_questions() -> dict[str, IQuestion]:
                               options=yes_no_options),
 
         Q.PainIntensity: CQ(text=Q.PainIntensity, next_q=Q.HadSickness,
-                            options=['Незначительная', 'Сильная', 'Очень сильная']),
+                            validations=[(validate_pain_intensity,
+                                          'Нужно ввести число от 1 до 10')],
+                            options=list(map(str, range(1, 11)))),
 
         Q.HadSickness: CQ(text=Q.HadSickness, next_q=Q.HadVomit,
                           options=['Нет', 'Незначительная', 'Заметная']),
