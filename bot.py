@@ -1,11 +1,10 @@
-import os
 from typing import Dict
 import aiosqlite
 
 from telegram.ext import Application, ApplicationBuilder, PersistenceInput, PicklePersistence
 
-from constants import DB_PATH, JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE, PERSISTENCE_PATH, \
-    OutputFileFormats
+from constants import DB_PATH, HPJ_BOT_TOKEN, JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE, \
+    PERSISTENCE_PATH, OutputFileFormats
 from handlers import ALL_COMMAND_HANDLERS, ERROR_HANDLER
 from commands import DefaultMenuCommands
 from journal_view import HTMLGenerator, IFileGenerator
@@ -35,7 +34,7 @@ async def post_init(application: Application) -> None:
 def configure_app() -> Application:
 
     application = ApplicationBuilder() \
-                    .token(os.environ.get('HPJ_TOKEN')) \
+                    .token(HPJ_BOT_TOKEN) \
                     .persistence(
                         PicklePersistence(filepath=PERSISTENCE_PATH,
                                           store_data=PersistenceInput(bot_data=False))) \

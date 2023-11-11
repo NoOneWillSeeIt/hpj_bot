@@ -1,14 +1,12 @@
 from datetime import datetime
-import os
 import re
 
 from telegram import CallbackQuery, Chat, Message, MessageEntity, Update, User
 from telegram.ext import Application, ApplicationBuilder, ExtBot, PersistenceInput, \
     PicklePersistence
 
+from constants import TEST_CHAT_ID, TEST_TOKEN
 
-TEST_TOKEN = os.environ.get('HPJ_TEST_TOKEN')
-TEST_CHAT_ID = os.environ.get('HPJ_TEST_CHAT')
 CMD_PATTERN = re.compile(r"/[\da-z_]{1,32}(?:@\w{1,32})?")
 TEST_PERSISTENCE_NAME = 'test_persistence'
 
