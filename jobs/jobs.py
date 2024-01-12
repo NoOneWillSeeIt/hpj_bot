@@ -1,12 +1,14 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
+import functools
 import logging
+from typing import Callable
 from telegram.ext import ContextTypes
 
 from commands import HPJCommands
 from constants import FLASK_PIC_PATH
 import db.aio_queries as asyncdb
-from .workers import create_weekly_report
+from .workers import create_weekly_report, drop_entries, mark_entries_for_delete
 
 
 async def reminder(context: ContextTypes.DEFAULT_TYPE):
@@ -44,3 +46,23 @@ async def weekly_report(context: ContextTypes.DEFAULT_TYPE):
 
     pool.shutdown()
     logging.info('Finished building weekly report')
+
+
+async def _no_result_all_chat_job_executor(context: ContextTypes.DEFAULT_TYPE, func: Callable):
+    chat_ids = await asyncdb.read_chats_with_entries(context.bot_data)
+    with ProcessPoolExecutor(max_workers=4) as pool:
+        pool.map(func, chat_ids)
+
+
+async def mark_old_entries_to_delete(context: ContextTypes.DEFAULT_TYPE):
+    await _no_result_all_chat_job_executor(
+        context,
+        functools.partial(mark_entries_for_delete, context.bot_data['db_path']),
+    )
+
+
+async def drop_outdated_entries(context: ContextTypes.DEFAULT_TYPE):
+    await _no_result_all_chat_job_executor(
+        context,
+        functools.partial(drop_entries, context.bot_data['db_path']),
+    )

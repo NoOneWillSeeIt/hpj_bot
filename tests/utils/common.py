@@ -1,6 +1,10 @@
 from copy import copy
+import sqlite3
 from typing import List, Self, Tuple
+
 import aiosqlite
+
+import db.queries as syncdb
 
 
 class Tree:
@@ -62,4 +66,12 @@ async def create_test_db() -> Tuple[str, aiosqlite.Connection]:
     await conn.execute('''
             CREATE TABLE journal(chat_id BIGINT PRIMARY KEY, entries TEXT, alarm TEXT);
         ''')
+    return db_path, conn
+
+
+def create_test_sync_db() -> Tuple[str, sqlite3.Connection]:
+    db_path = ':memory:'
+    conn = sqlite3.connect(db_path)
+    syncdb.create_base_table(conn)
+    syncdb.create_del_tmp_table(conn)
     return db_path, conn

@@ -1,7 +1,7 @@
 from collections import namedtuple
-import datetime
+from datetime import datetime, timedelta
 
-from constants import ENTRY_KEY_FORMAT, JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE
+from constants import DAYS_TO_STORE, ENTRY_KEY_FORMAT, JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE
 import db.queries as db
 from hpj_questions import Questions
 from journal_view import HTMLGenerator
@@ -14,10 +14,10 @@ WeeklyReport = namedtuple(
 
 def create_weekly_report(chat_id: str, db_path: str) -> WeeklyReport:
     entries = db.read_entries(db_path, chat_id)
-    today = datetime.datetime.today()
-    last_sunday = today - datetime.timedelta(days=today.isoweekday())
+    today = datetime.today()
+    last_sunday = today - timedelta(days=today.isoweekday())
     last_week = [
-        (last_sunday - datetime.timedelta(days=day_diff)).strftime(ENTRY_KEY_FORMAT)
+        (last_sunday - timedelta(days=day_diff)).strftime(ENTRY_KEY_FORMAT)
         for day_diff in range(6, -1, -1)
     ]
 
@@ -27,8 +27,6 @@ def create_weekly_report(chat_id: str, db_path: str) -> WeeklyReport:
         if entry:
             result_entries[date] = entry
 
-    # TODO: NO DELETING ON CURRENT ITERATION
-    # db.mark_entries_for_delete(db_path, chat_id, last_week)
     html_gen = HTMLGenerator(JINJA_TEMPLATE_PATH, JOURNAL_TEMPLATE, enable_async=False)
 
     period = f'{last_week[0]}-{last_week[-1]}'
@@ -42,3 +40,21 @@ def create_weekly_report(chat_id: str, db_path: str) -> WeeklyReport:
             else None
         )
     )
+
+
+def mark_entries_for_delete(chat_id: str, db_path: str):
+    existing_keys = db.read_entries_keys(db_path, chat_id)
+    today = datetime.today()
+    keys_to_save = {
+        (today - timedelta(days=day_diff)).strftime(ENTRY_KEY_FORMAT)
+        for day_diff in range(DAYS_TO_STORE)
+    }
+    keys_to_delete = existing_keys - keys_to_save
+    if not keys_to_delete:
+        return
+
+    db.mark_entries_for_delete(db_path, chat_id, keys_to_delete)
+
+
+def drop_entries(chat_id: str, db_path: str):
+    db.delete_marked_entries(db_path, chat_id)
