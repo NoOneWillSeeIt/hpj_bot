@@ -35,7 +35,7 @@ class SurveyHandlerTest(AsyncTelegramBotTestCase):
                          send_mock.await_args.kwargs['reply_markup'].keyboard[0])
         set_cmd_mock.assert_awaited_once()
         self.assertEqual(
-            set_cmd_mock.await_args.args[1].chat_id,
+            str(set_cmd_mock.await_args.args[1].chat_id),
             TEST_CHAT_ID
         )
         self.assertEqual(
@@ -93,7 +93,7 @@ class SurveyHandlerTest(AsyncTelegramBotTestCase):
                        ReplyKeyboardRemove)
         )
         self.assertEqual(
-            del_cmd_mock.await_args.args[0].chat_id,
+            str(del_cmd_mock.await_args.args[0].chat_id),
             TEST_CHAT_ID
         )
         self.assertTrue(self._check_convo_ready_to_start())

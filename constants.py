@@ -6,6 +6,7 @@ import os
 # PATHS
 DB_FOLDER = 'db_instance'
 DB_PATH = f'{DB_FOLDER}/hpj_bot.db'
+TEST_DB_PATH = f'{DB_FOLDER}/test_hpj_bot.db'
 PERSISTENCE_PATH = f'{DB_FOLDER}/persistence'
 
 JINJA_TEMPLATE_PATH = 'journal_view/templates'

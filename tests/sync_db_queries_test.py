@@ -1,22 +1,41 @@
 from datetime import datetime, timedelta
+import gc
 import json
 import sqlite3
 from unittest import TestCase
-from constants import DAYS_TO_STORE_BACKUP
+from constants import DAYS_TO_STORE_BACKUP, ENTRY_KEY_FORMAT
 
 from db import queries as syncdb
-from tests.utils.common import create_test_sync_db
+from tests.utils.common import create_test_sync_db, drop_test_db
 
 
 class SyncDBTestCase(TestCase):
 
+    db_path = None
+
     def setUp(self) -> None:
-        db_path, conn = create_test_sync_db()
-        self.conn = conn
-        self.db_path = db_path
+        self.conn = sqlite3.connect(self.db_path)
+        syncdb.create_base_table(self.conn)
+        syncdb.create_del_tmp_table(self.conn)
         return super().setUp()
 
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.db_path = create_test_sync_db()
+        return super().setUpClass()
+
     def tearDown(self) -> None:
+        self.conn.execute(
+            '''
+            DROP TABLE IF EXISTS journal;
+            '''
+        )
+        self.conn.execute(
+            '''
+            DROP TABLE IF EXISTS del_journal;
+            '''
+        )
+        self.conn.commit()
         self.conn.close()
         return super().tearDown()
 
@@ -72,7 +91,7 @@ class SyncDBTestCase(TestCase):
         self.assertTrue(isinstance(entries[key], dict))
         self.assertEqual(entries[key], data)
 
-        entries = syncdb.read_entries(self.db_path)
+        entries = syncdb.read_entries(self.db_path, chat_id)
 
     def test_read_entries_keys(self):
         chat_id = 1
@@ -120,21 +139,33 @@ class SyncDBTestCase(TestCase):
         chat_id = 1
         data = {'sample': 'text'}
         cur_date = datetime.now()
-        keys = [cur_date - timedelta(days=DAYS_TO_STORE_BACKUP+i) for i in range(1, 5)]
+        keys = [
+            (
+                cur_date - timedelta(days=DAYS_TO_STORE_BACKUP+i)
+            ).strftime(ENTRY_KEY_FORMAT)
+            for i in range(1, 5)
+        ]
         keys_to_del = [keys[0], keys[1]]
 
         for key in keys:
             self.write_entry(chat_id, key, data)
 
+        self.conn.commit()
         syncdb.mark_entries_for_delete(self.db_path, chat_id, keys_to_del)
+
+        self.conn.execute(f'''
+            update del_journal
+            set mark_date = datetime('now', '-{DAYS_TO_STORE_BACKUP * 2} days');
+        ''')
+        self.conn.commit()
+
         syncdb.delete_marked_entries(self.db_path, chat_id)
 
         cursor = self.conn.execute('''
             select *
             from del_journal
-            where chat_id = :chat_id
+            where chat_id = :chat_id;
         ''', {'chat_id': chat_id})
 
-        cursor.row_factory = sqlite3.Row
         results = cursor.fetchone()
         self.assertIsNone(results)

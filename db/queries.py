@@ -41,7 +41,7 @@ def create_base_table(conn: sqlite3.Connection) -> None:
 def create_del_tmp_table(conn: sqlite3.Connection) -> None:
     conn.execute('''
         CREATE TABLE del_journal(
-                 r_id BIGINT PRIMARY KEY,
+                 r_id INTEGER PRIMARY KEY ASC,
                  chat_id BIGINT,
                  entries TEXT,
                  mark_date TEXT,
@@ -89,7 +89,7 @@ def delete_marked_entries(db_path: str, chat_id: str) -> None:
             DELETE FROM del_journal
             WHERE
                 chat_id = :chat_id
-                AND mark_date < datetime('now', '-:store_time days')
+                AND mark_date < datetime('now', '-' || :store_time || ' days');
             ''',
             {
                 'chat_id': chat_id,

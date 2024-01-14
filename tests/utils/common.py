@@ -1,8 +1,10 @@
 from copy import copy
+import os
 import sqlite3
 from typing import List, Self, Tuple
 
 import aiosqlite
+from constants import TEST_DB_PATH
 
 import db.queries as syncdb
 
@@ -70,8 +72,8 @@ async def create_test_db() -> Tuple[str, aiosqlite.Connection]:
 
 
 def create_test_sync_db() -> Tuple[str, sqlite3.Connection]:
-    db_path = ':memory:'
+    db_path = TEST_DB_PATH
     conn = sqlite3.connect(db_path)
-    syncdb.create_base_table(conn)
-    syncdb.create_del_tmp_table(conn)
-    return db_path, conn
+    conn.commit()
+    conn.close()
+    return db_path
