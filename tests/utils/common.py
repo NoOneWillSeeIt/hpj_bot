@@ -1,12 +1,9 @@
 from copy import copy
-import os
 import sqlite3
 from typing import List, Self, Tuple
 
 import aiosqlite
 from constants import TEST_DB_PATH
-
-import db.queries as syncdb
 
 
 class Tree:

@@ -1,12 +1,11 @@
 from datetime import datetime, timedelta
-import gc
 import json
 import sqlite3
 from unittest import TestCase
 from constants import DAYS_TO_STORE_BACKUP, ENTRY_KEY_FORMAT
 
 from db import queries as syncdb
-from tests.utils.common import create_test_sync_db, drop_test_db
+from tests.utils.common import create_test_sync_db
 
 
 class SyncDBTestCase(TestCase):
