@@ -42,7 +42,7 @@ def create_weekly_report(chat_id: str, db_path: str) -> WeeklyReport:
     )
 
 
-def mark_entries_for_delete(chat_id: str, db_path: str):
+def mark_entries_for_delete(db_path: str, chat_id: str | int):
     existing_keys = db.read_entries_keys(db_path, chat_id)
     today = datetime.today()
     keys_to_save = {
@@ -56,5 +56,5 @@ def mark_entries_for_delete(chat_id: str, db_path: str):
     db.mark_entries_for_delete(db_path, chat_id, keys_to_delete)
 
 
-def drop_entries(chat_id: str, db_path: str):
+def drop_entries(db_path: str, chat_id: str | int):
     db.delete_marked_entries(db_path, chat_id)

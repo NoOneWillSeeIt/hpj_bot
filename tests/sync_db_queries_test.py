@@ -12,16 +12,16 @@ class SyncDBTestCase(TestCase):
 
     db_path = None
 
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.db_path = create_test_sync_db()
+        return super().setUpClass()
+
     def setUp(self) -> None:
         self.conn = sqlite3.connect(self.db_path)
         syncdb.create_base_table(self.conn)
         syncdb.create_del_tmp_table(self.conn)
         return super().setUp()
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.db_path = create_test_sync_db()
-        return super().setUpClass()
 
     def tearDown(self) -> None:
         self.conn.execute(

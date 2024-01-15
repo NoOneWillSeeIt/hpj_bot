@@ -51,7 +51,7 @@ async def weekly_report(context: ContextTypes.DEFAULT_TYPE):
 async def _no_result_all_chat_job_executor(context: ContextTypes.DEFAULT_TYPE, func: Callable):
     chat_ids = await asyncdb.read_chats_with_entries(context.bot_data)
     with ProcessPoolExecutor(max_workers=4) as pool:
-        pool.map(func, chat_ids)
+        pool.map(func, chat_ids, chunksize=1)
 
 
 async def mark_old_entries_to_delete(context: ContextTypes.DEFAULT_TYPE):
