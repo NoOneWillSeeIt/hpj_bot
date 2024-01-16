@@ -18,6 +18,7 @@ BotMocks = namedtuple(
 
 
 class LoadJournalHandlersTest(AsyncTelegramBotTestCase):
+    """Load journal convo handler test cases"""
 
     _handlers = [LOAD_HANDLER, LOAD_CALLBACK_HANDLER]
 

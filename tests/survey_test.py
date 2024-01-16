@@ -4,6 +4,7 @@ from survey import create_question, IQuestion, Survey
 
 
 class TestSurvey(unittest.TestCase):
+    """Survey class checks"""
 
     def setUp(self) -> None:
         self.questions = {

@@ -1,3 +1,7 @@
+"""
+Report generation module. Creates from templates using jinja.
+"""
+
 __all__ = (
     'IFileGenerator',
     'HTMLGenerator',

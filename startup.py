@@ -28,6 +28,10 @@ def nearest_weekday(day=0):
 
 
 def main():
+    """
+    Configure app, create database if not exists, add scheduling jobs to bot and run it.
+    TODO: add cmd line args to use test token instead of prod for testing purposes
+    """
     app = configure_app()
 
     dirs = os.listdir()

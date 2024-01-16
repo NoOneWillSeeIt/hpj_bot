@@ -11,6 +11,7 @@ from constants import DEVELOPER_CHAT_ID
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Reports error to dev chat."""
     logging.error("BOT ERROR: ", exc_info=context.error)
 
     tb_list = traceback.format_exception(context.error, limit=-20)

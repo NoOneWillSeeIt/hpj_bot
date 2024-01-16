@@ -13,6 +13,16 @@ WeeklyReport = namedtuple(
 
 
 def create_weekly_report(chat_id: str, db_path: str) -> WeeklyReport:
+    """Generates weekly report from last monday to last sunday. Creates report even if there's only
+    one entry from last week.
+
+    Args:
+        chat_id (str): chat_id from journal table.
+        db_path (str): Path to database.
+
+    Returns:
+        WeeklyReport: Weekly report. file_bytes=None if there's no entries from last week.
+    """
     entries = db.read_entries(db_path, chat_id)
     today = datetime.today()
     last_sunday = today - timedelta(days=today.isoweekday())
@@ -43,6 +53,12 @@ def create_weekly_report(chat_id: str, db_path: str) -> WeeklyReport:
 
 
 def mark_entries_for_delete(db_path: str, chat_id: str | int):
+    """Moves old entries to del_journal table if entries older than constants.DAYS_TO_STORE.
+
+    Args:
+        db_path (str): Path to database.
+        chat_id (str | int): chat_id from journal table.
+    """
     existing_keys = db.read_entries_keys(db_path, chat_id)
     today = datetime.today()
     keys_to_save = {
@@ -57,4 +73,11 @@ def mark_entries_for_delete(db_path: str, chat_id: str | int):
 
 
 def drop_entries(db_path: str, chat_id: str | int):
+    """Deletes old entries from del_journal table if they were added more than
+    constants.DAYS_TO_STORE_BACKUP days.
+
+    Args:
+        db_path (str): Path to database.
+        chat_id (str | int): chat_id from journal table.
+    """
     db.delete_marked_entries(db_path, chat_id)

@@ -12,6 +12,7 @@ from .workers import create_weekly_report, drop_entries, mark_entries_for_delete
 
 
 async def reminder(context: ContextTypes.DEFAULT_TYPE):
+    """Reminds user about journal filling the journal."""
     if not context.chat_data.get('survey'):
         await context.bot.send_message(
             chat_id=context.job.chat_id,
@@ -22,6 +23,7 @@ async def reminder(context: ContextTypes.DEFAULT_TYPE):
 
 
 async def weekly_report(context: ContextTypes.DEFAULT_TYPE):
+    """Creates weekly reports and sends it to users."""
     logging.info('Started building weekly report')
     loop = asyncio.get_event_loop()
     chat_ids = await asyncdb.read_chats_with_entries(context.bot_data)
@@ -49,12 +51,19 @@ async def weekly_report(context: ContextTypes.DEFAULT_TYPE):
 
 
 async def _no_result_all_chat_job_executor(context: ContextTypes.DEFAULT_TYPE, func: Callable):
+    """Execute provided worker function on all users.
+
+    Args:
+        context (ContextTypes.DEFAULT_TYPE): telegram.Context
+        func (Callable): Worker function to apply.
+    """
     chat_ids = await asyncdb.read_chats_with_entries(context.bot_data)
     with ProcessPoolExecutor(max_workers=4) as pool:
         pool.map(func, chat_ids, chunksize=1)
 
 
 async def mark_old_entries_to_delete(context: ContextTypes.DEFAULT_TYPE):
+    """Moves old entries to del_journal table if entries older than constants.DAYS_TO_STORE"""
     await _no_result_all_chat_job_executor(
         context,
         functools.partial(mark_entries_for_delete, context.bot_data['db_path']),
@@ -62,6 +71,8 @@ async def mark_old_entries_to_delete(context: ContextTypes.DEFAULT_TYPE):
 
 
 async def drop_outdated_entries(context: ContextTypes.DEFAULT_TYPE):
+    """Deletes old entries from del_journal table if they were added more than
+    constants.DAYS_TO_STORE_BACKUP days"""
     await _no_result_all_chat_job_executor(
         context,
         functools.partial(drop_entries, context.bot_data['db_path']),

@@ -1,3 +1,6 @@
+"""
+Custom mocks and cases for testing based on unittest module.
+"""
 import asyncio
 import os
 from typing import Any
@@ -11,6 +14,7 @@ from tests.utils.ptb_app import TEST_PERSISTENCE_NAME, make_app
 
 
 class AsyncResultCacheMock(AsyncMock):
+    """AsyncMock that stores results of its calls"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -31,6 +35,7 @@ class AsyncResultCacheMock(AsyncMock):
 
 
 class AsyncDBTestCase(IsolatedAsyncioTestCase):
+    """TestCase which creates async db and prepares schema"""
 
     async def asyncSetUp(self) -> None:
         db_path, conn = await create_test_db()
@@ -47,6 +52,7 @@ class AsyncDBTestCase(IsolatedAsyncioTestCase):
 
 
 class AsyncTelegramBotTestCase(AsyncDBTestCase):
+    """TestCase which handles telegram.Application creation, startup and shutdown"""
 
     _handlers = []
 

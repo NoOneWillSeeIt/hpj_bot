@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class IFileGenerator(ABC):
+    """Base generator interface."""
 
     _extension: str = ''
     _name_prefix: str = 'hpj'

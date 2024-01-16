@@ -11,9 +11,11 @@ SURVEY_CONVO = 0
 
 
 class SurveyHandlers:
+    """Survey conversation handlers"""
 
     @classmethod
     async def start(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        """Starts survey and greets user if it's first time."""
         if await asyncdb.is_new_user(context.bot_data, update.message.chat_id):
             await update.message.reply_text(
                 'Опрос можно перезапустить, вернуться к предыдущему вопросу или остановить, чтобы '
@@ -23,6 +25,8 @@ class SurveyHandlers:
 
     @classmethod
     async def convo(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        """Survey conversation handler - asks questions until survey exhaust or user sends
+        stop command."""
         survey = context.chat_data.get('survey')
 
         if not survey:
@@ -53,6 +57,7 @@ class SurveyHandlers:
 
     @classmethod
     async def stop(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        """Interrupt survey."""
         survey = context.chat_data['survey']
         if survey:
             survey.stop()
@@ -67,6 +72,7 @@ class SurveyHandlers:
 
     @classmethod
     async def back(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        """Go to previous question."""
         survey = context.chat_data.get('survey')
         survey.go_back()
         await update.message.reply_text(
@@ -76,6 +82,7 @@ class SurveyHandlers:
 
     @classmethod
     async def restart(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        """Restart survey from the beginning."""
         survey = context.chat_data['survey']
         if survey:
             del context.chat_data['survey']
@@ -84,6 +91,7 @@ class SurveyHandlers:
 
 
 def get_survey_keyboard(survey: Survey) -> ReplyKeyboardMarkup | ReplyKeyboardRemove:
+    """Returns survey keyboard based on question options."""
     if survey and survey.isongoing and survey.question.options:
         return ReplyKeyboardMarkup(
             [survey.question.options], resize_keyboard=True, one_time_keyboard=True

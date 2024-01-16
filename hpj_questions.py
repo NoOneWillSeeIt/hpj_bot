@@ -32,6 +32,7 @@ class Questions(StrEnum):
 
 
 def validate_date(answer: str) -> bool:
+    """Check date format is valid"""
     try:
         datetime.strptime(answer, ENTRY_KEY_FORMAT)
     except ValueError:
@@ -41,6 +42,7 @@ def validate_date(answer: str) -> bool:
 
 
 def validate_pain_intensity(answer: str) -> bool:
+    """Validate the answer is on a scale of 1 to 10"""
     try:
         num = int(answer)
     except ValueError:
@@ -50,6 +52,7 @@ def validate_pain_intensity(answer: str) -> bool:
 
 
 def suggest_date() -> List[str]:
+    """Suggest today and yesterday to user"""
     today = datetime.today()
     yesterday = today - timedelta(days=1)
     return [yesterday.strftime(ENTRY_KEY_FORMAT), today.strftime(ENTRY_KEY_FORMAT)]
@@ -60,7 +63,7 @@ def had_pain_next_q(answer: str) -> str:
 
 
 def build_questions() -> dict[str, IQuestion]:
-
+    """Build questions for survey"""
     yes_no_options = ['Да', 'Нет']
 
     Q = Questions
@@ -119,6 +122,9 @@ def get_head_pain_survey() -> Survey:
 
 
 def prepare_answers_for_db(replies: dict) -> Tuple[str, dict]:
+    """Prepare answers from survey before saving.
+    Get rid of StrEnum fields.
+    """
     result = {}
     for strenum_key, reply in replies.items():
         result[strenum_key.name] = reply

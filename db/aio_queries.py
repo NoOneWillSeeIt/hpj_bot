@@ -7,6 +7,16 @@ from constants import TIME_FORMAT
 
 
 async def get_db_conn_from_bot_data(bot_data: dict) -> aiosqlite.Connection:
+    """Returns connection to database from bot_data. Uses existing connection from 'db_conn' key if
+    it's alive or creates a new one from 'db_path'.
+
+    Args:
+        bot_data (dict): bot_data initialized on post_init app configuration.
+        Must contain 'db_path' key to establish connection.
+
+    Returns:
+        aiosqlite.Connection: Connection to DB.
+    """
     try:
         conn = bot_data['db_conn']
         await conn.cursor()
@@ -19,6 +29,13 @@ async def get_db_conn_from_bot_data(bot_data: dict) -> aiosqlite.Connection:
 
 
 async def write_alarm(bot_data: dict, chat_id: int, time: time):
+    """Write alarm to DB.
+
+    Args:
+        bot_data (dict): bot_data initialized on post_init app configuration.
+        chat_id (int): chat_id from journal table.
+        time (time): Alarm time.
+    """
     conn = await get_db_conn_from_bot_data(bot_data)
     time_str = time.strftime(TIME_FORMAT)
     await conn.execute(
@@ -33,6 +50,12 @@ async def write_alarm(bot_data: dict, chat_id: int, time: time):
 
 
 async def clear_alarm(bot_data: dict, chat_id: int):
+    """Drop alarm time.
+
+    Args:
+        bot_data (dict): bot_data initialized on post_init app configuration.
+        chat_id (int): chat_id from journal table.
+    """
     conn = await get_db_conn_from_bot_data(bot_data)
     await conn.execute(
         '''
@@ -47,6 +70,14 @@ async def clear_alarm(bot_data: dict, chat_id: int):
 
 
 async def write_entry(bot_data: dict, chat_id: int, key: str, entry: dict):
+    """Write new entry to journal. Journal stores as JSON with date keys.
+
+    Args:
+        bot_data (dict): bot_data initialized on post_init app configuration.
+        chat_id (int): chat_id from journal table.
+        key (str): Date key to store entry.
+        entry (dict): Prepared question replies.
+    """
     conn = await get_db_conn_from_bot_data(bot_data)
     await conn.execute(
         '''
@@ -76,6 +107,15 @@ async def write_entry(bot_data: dict, chat_id: int, key: str, entry: dict):
 
 
 async def read_entries(bot_data: dict, chat_id: str) -> dict:
+    """Returns all entries of selected user.
+
+    Args:
+        bot_data (dict): bot_data initialized on post_init app configuration.
+        chat_id (str): chat_id from journal table.
+
+    Returns:
+        dict: User entries.
+    """
     conn = await get_db_conn_from_bot_data(bot_data)
     cursor = await conn.execute(
         '''
@@ -92,12 +132,20 @@ async def read_entries(bot_data: dict, chat_id: str) -> dict:
 
 
 async def read_chats_with_entries(bot_data: dict) -> list:
+    """Returns list of chat_id with entries.
+
+    Args:
+        bot_data (dict): _description_
+
+    Returns:
+        list: _description_
+    """
     conn = await get_db_conn_from_bot_data(bot_data)
     cursor = await conn.execute(
         '''
         SELECT chat_id
         FROM journal
-        WHERE entries IS NOT NULL;
+        WHERE entries IS NOT NULL and json(entries) != json('{}');
         ''',
     )
     logging.info('DB read entries all chats with entries')
@@ -106,6 +154,15 @@ async def read_chats_with_entries(bot_data: dict) -> list:
 
 
 async def is_new_user(bot_data: dict, chat_id: str) -> bool:
+    """Returns if user already exists in DB.
+
+    Args:
+        bot_data (dict): bot_data initialized on post_init app configuration.
+        chat_id (str): chat_id from journal table.
+
+    Returns:
+        bool: Is user exists in DB.
+    """
     conn = await get_db_conn_from_bot_data(bot_data)
     cursor = await conn.execute(
         '''

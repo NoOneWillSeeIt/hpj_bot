@@ -7,6 +7,7 @@ from tests.utils.test_cases import AsyncDBTestCase
 
 
 class AsyncDbCrudOpsTest(AsyncDBTestCase):
+    """Test cases for async db queries"""
 
     async def test_get_db_conn(self):
         conn = await asyncdb.get_db_conn_from_bot_data({'db_conn': self.conn})

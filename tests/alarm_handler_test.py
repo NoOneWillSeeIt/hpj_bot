@@ -11,6 +11,7 @@ from tests.utils.test_cases import AsyncTelegramBotTestCase
 
 
 class AlarmHandlersTest(AsyncTelegramBotTestCase):
+    """Alarm convo handlers test cases"""
 
     _handlers = [ALARM_CONVO_HANDLER, ALARM_CANCEL_HANDLER]
 

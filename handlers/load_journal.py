@@ -8,9 +8,11 @@ from hpj_questions import Questions
 
 
 class LoadJournalHandlers:
+    """Handlers for loading full journal."""
 
     @classmethod
     async def load(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handles /load command and suggests file formats."""
         keyboard = [
             [
                 InlineKeyboardButton(file_format.name, callback_data=file_format.value)
@@ -24,6 +26,7 @@ class LoadJournalHandlers:
 
     @classmethod
     async def load_choose(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handles file format choosing. Generates report and send it to user."""
         query = update.callback_query
         chat_id = query.message.chat_id
 

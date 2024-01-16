@@ -1,3 +1,7 @@
+"""
+Functions to create app and make automated convos for testing.
+"""
+
 from datetime import datetime
 import re
 

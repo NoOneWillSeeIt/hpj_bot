@@ -19,6 +19,7 @@ def filegens() -> Dict[str, Dict[str, IFileGenerator]]:
 
 
 async def post_init(application: Application) -> None:
+    """Post initialization handler. Updating bot data and setting commands for menu"""
     conn = await aiosqlite.connect(DB_PATH)
     db_data = {
         'db_conn': conn,
@@ -32,14 +33,14 @@ async def post_init(application: Application) -> None:
 
 
 def configure_app() -> Application:
-
+    """Configure and build app, add handlers"""
     application = ApplicationBuilder() \
-                    .token(HPJ_BOT_TOKEN) \
-                    .persistence(
-                        PicklePersistence(filepath=PERSISTENCE_PATH,
-                                          store_data=PersistenceInput(bot_data=False))) \
-                    .post_init(post_init) \
-                    .build()
+        .token(HPJ_BOT_TOKEN) \
+        .persistence(
+            PicklePersistence(filepath=PERSISTENCE_PATH,
+                              store_data=PersistenceInput(bot_data=False))) \
+        .post_init(post_init) \
+        .build()
 
     application.add_handlers(ALL_COMMAND_HANDLERS)
     application.add_error_handler(ERROR_HANDLER)

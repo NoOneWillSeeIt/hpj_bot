@@ -25,6 +25,11 @@ def check_del_tmp_table_exists(conn: sqlite3.Connection) -> bool:
 
 
 def create_base_table(conn: sqlite3.Connection) -> None:
+    """Creates journal table. Stores entries and alarms.
+
+    Args:
+        conn (sqlite3.Connection): Database connection.
+    """
     conn.execute('''
         CREATE TABLE journal(
                  chat_id BIGINT PRIMARY KEY,
@@ -39,6 +44,11 @@ def create_base_table(conn: sqlite3.Connection) -> None:
 
 
 def create_del_tmp_table(conn: sqlite3.Connection) -> None:
+    """Creates del_journal table. Which is a temporary place for deleted entries.
+
+    Args:
+        conn (sqlite3.Connection): Database connection.
+    """
     conn.execute('''
         CREATE TABLE del_journal(
                  r_id INTEGER PRIMARY KEY ASC,
@@ -99,6 +109,7 @@ def delete_marked_entries(db_path: str, chat_id: str) -> None:
 
 
 def read_entries_keys(db_path: str, chat_id: str) -> Set[str]:
+    """Read all keys from user entries."""
     with sqlite3.connect(db_path) as conn:
         cursor = conn.execute(
             '''
@@ -113,6 +124,8 @@ def read_entries_keys(db_path: str, chat_id: str) -> Set[str]:
 
 
 def mark_entries_for_delete(db_path: str, chat_id: str, keys: List[str]) -> None:
+    """Insert old entries into del_journal. Delete those entries from journal."""
+
     with sqlite3.connect(db_path) as conn:
         marked_for_delete = conn.execute(
             '''

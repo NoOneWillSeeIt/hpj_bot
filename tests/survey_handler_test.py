@@ -10,6 +10,7 @@ from tests.utils.test_cases import AsyncTelegramBotTestCase
 
 
 class SurveyHandlerTest(AsyncTelegramBotTestCase):
+    """Survey convo handler test cases"""
 
     _handlers = [SURVEY_CONVO_HANDLER]
 

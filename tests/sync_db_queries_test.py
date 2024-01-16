@@ -9,6 +9,7 @@ from tests.utils.common import create_test_sync_db
 
 
 class SyncDBTestCase(TestCase):
+    """Test cases for sync queries used on bot startup or by workers"""
 
     db_path = None
 

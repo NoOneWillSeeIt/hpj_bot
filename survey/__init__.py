@@ -1,3 +1,13 @@
+"""
+Module survey provides:
+
+Survey class for navigation through questions and collecting answers;
+
+IQuestion interface that represents questions;
+
+create_question fabric method for creating questions.
+"""
+
 __all__ = (
     'IQuestion',
     'Survey',

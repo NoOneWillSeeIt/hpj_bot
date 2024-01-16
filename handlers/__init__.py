@@ -1,3 +1,7 @@
+"""
+Command handlers for HPJ bot.
+"""
+
 __all__ = (
     'ALL_COMMAND_HANDLERS',
     'ALARM_CONVO_HANDLER',

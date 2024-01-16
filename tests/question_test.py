@@ -5,6 +5,7 @@ from survey.question_base import BaseQuestion, CustomValidatedQuestion, IQuestio
 
 
 class TestQuestion(unittest.TestCase):
+    """Test cases for different question types"""
 
     def test_question_creation(self):
         question = create_question('1', '2')

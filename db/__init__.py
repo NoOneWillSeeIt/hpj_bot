@@ -1,3 +1,7 @@
+"""
+Contains queries for async and sync connection to DB.
+"""
+
 __all__ = (
     'aio_queries',
     'queries'

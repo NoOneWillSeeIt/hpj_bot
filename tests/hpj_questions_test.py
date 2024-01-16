@@ -6,6 +6,7 @@ from tests.utils.common import Tree, recursion_limiter
 
 
 class HpjQuestionsTest(unittest.TestCase):
+    """Test cases for questions to prevent infinite looping, loosing questions and missing ending"""
 
     def test_all_questions_declared(self):
         hpj_built_questions = build_questions()

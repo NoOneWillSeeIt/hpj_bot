@@ -19,8 +19,8 @@ class MenuCommands:
 
 class DefaultMenuCommands(MenuCommands):
 
-    command_list = [HPJCommands.START, HPJCommands.ALARM, HPJCommands.ADD_ENTRY, HPJCommands.LOAD,
-                    HPJCommands.CANCEL]
+    command_list = [HPJCommands.START, HPJCommands.HELP, HPJCommands.ALARM, HPJCommands.ADD_ENTRY,
+                    HPJCommands.LOAD, HPJCommands.CANCEL]
 
 
 class SurveyMenuCommands(MenuCommands):

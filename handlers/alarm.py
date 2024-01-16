@@ -13,9 +13,14 @@ ALARM_CONVO = 0
 
 
 class AlarmHandlers:
+    """Handlers for setting time to notify users."""
 
     @classmethod
     async def alarm(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Conversation starter. Supports two ways of setting alarm:
+        /alarm hh:mm - sets the alarm.
+        /alarm - starts convo to set the alarm.
+        """
         if not await cls._set_alarm(update, context):
             await update.message.reply_text(
                 'Нужно указать время по московскому часовому поясу в виде чч:мм.')
@@ -25,6 +30,7 @@ class AlarmHandlers:
 
     @classmethod
     async def alarm_convo(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Alarm conversation. Conversation ends in any case."""
         if not await cls._set_alarm(update, context):
             await update.message.reply_text(
                 f'Неверный формат, попробуй ещё раз нажать /{HPJCommands.ALARM}')
@@ -33,6 +39,8 @@ class AlarmHandlers:
 
     @classmethod
     async def _set_alarm(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+        """Sets alarm if update.message contains valid time and return True.
+        Return False otherwise."""
         try:
             chat_id = update.message.chat_id
             user_input = update.message.text.strip()
@@ -58,6 +66,7 @@ class AlarmHandlers:
 
     @classmethod
     async def cancel(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Drop alarm time from table."""
         chat_id = update.message.chat_id
         remove_job_if_exists(f'{ALARM_JOB_PREFIX}{chat_id}', context)
         await asyncdb.clear_alarm(context.bot_data, chat_id)
@@ -68,6 +77,7 @@ class AlarmHandlers:
 
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Remove job from queue."""
     current_jobs = context.job_queue.get_jobs_by_name(name)
     if not current_jobs:
         return

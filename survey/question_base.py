@@ -3,6 +3,7 @@ from typing import Callable, Final, List, Optional, Self, Tuple
 
 
 class IQuestion(ABC):
+    """Interface that represents questions"""
 
     SAME: Final[int] = -1
     END: Final[int] = -2
@@ -20,6 +21,7 @@ class IQuestion(ABC):
 
 
 class BaseQuestion(IQuestion):
+    """Simple question which can take answer and return next question"""
 
     def __init__(self,
                  text: str,
@@ -39,6 +41,7 @@ class BaseQuestion(IQuestion):
 
 
 class OptionQuestion(BaseQuestion):
+    """Question with non strict suggestions"""
 
     def __init__(self,
                  text: str,
@@ -62,6 +65,7 @@ class OptionQuestion(BaseQuestion):
 
 
 class StrictOptionQuestion(OptionQuestion):
+    """Question with strict where only given options can be used as an answer"""
 
     def reply(self, answer: str) -> Self | None:
         if answer.lower() not in [opt.lower() for opt in self.options]:
@@ -72,6 +76,9 @@ class StrictOptionQuestion(OptionQuestion):
 
 
 class CustomValidatedQuestion(OptionQuestion):
+    """Question with custom validations on answer.
+    Inherited from OptionQuestion so any given option is not strict.
+    """
 
     def __init__(self,
                  text: str,
@@ -99,6 +106,19 @@ def create_question(
     strict_options: bool = True,
     validations: List[Tuple[Callable[[str], bool], str]] = [],
 ) -> IQuestion:
+    """Factory method which creates questions with IQuestion interface.
+
+    Args:
+        text (str): Question text.
+        next_q (Callable[[str], object] | object): Next question after replying.
+        options (List[str], optional): Reply options. Defaults to [].
+        strict_options (bool, optional): Is reply options strict. Defaults to True.
+        validations (List[Tuple[Callable[[str], bool], str]], optional): Custom validations for
+        question to add. Defaults to [].
+
+    Returns:
+        IQuestion: Question with provided attributes.
+    """
 
     if validations:
         question = CustomValidatedQuestion(text, next_q, options)
