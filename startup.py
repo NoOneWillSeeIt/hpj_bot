@@ -5,11 +5,11 @@ import sqlite3
 
 from telegram import Update
 
-from bot import configure_app
-from constants import ALARM_JOB_PREFIX, DB_FOLDER, DB_PATH, MSK_TIMEZONE_OFFSET, TIME_FORMAT
-import db.queries as db
-from jobs import reminder, weekly_report
-from jobs.jobs import drop_outdated_entries, mark_old_entries_to_delete
+from tg_bot.bot import configure_app
+from tg_bot.constants import ALARM_JOB_PREFIX, DB_FOLDER, DB_PATH, MSK_TIMEZONE_OFFSET, TIME_FORMAT
+import tg_bot.db.queries as db
+from tg_bot.jobs import reminder, weekly_report
+from tg_bot.jobs.jobs import drop_outdated_entries, mark_old_entries_to_delete
 
 
 logging.basicConfig(
