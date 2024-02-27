@@ -3,3 +3,4 @@ __pycache__/
 db_instance/
 experiments/
 .mypy_cache/
+certs/

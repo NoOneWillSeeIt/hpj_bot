@@ -25,8 +25,7 @@ async def get_user(
 async def get_or_create_user(
     session: AsyncSession, channel: Channel, channel_id: int
 ) -> UserModel:
-    db_user = await get_user(session, channel, channel_id)
-    if db_user is None:
+    if not (db_user := await get_user(session, channel, channel_id)):
         db_user = UserModel(channel=channel, channel_id=channel_id)
         session.add(db_user)
         await session.commit()

@@ -14,6 +14,7 @@ fastapi = "^0.109.2"
 sqlalchemy = "^2.0.27"
 pydantic-settings = "^2.2.1"
 uvicorn = {extras = ["standard"], version = "^0.27.1"}
+pyjwt = {extras = ["crypto"], version = "^2.8.0"}
 
 
 [build-system]
