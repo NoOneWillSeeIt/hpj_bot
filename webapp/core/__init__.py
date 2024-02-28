@@ -1,4 +1,4 @@
-from webapp.core.settings import settings
-from webapp.core.db_helper import DatabaseHelper
+from .settings import settings
+from .db_helper import DatabaseHelper
 
 db_helper = DatabaseHelper(settings.db.url, settings.db.echo)
