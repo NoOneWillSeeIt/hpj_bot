@@ -1,6 +1,4 @@
-__all__ = (
-    'EntriesRouter',
-)
+__all__ = ("EntriesRouter",)
 
 
-from webapp.api_v1.entries.views import router as EntriesRouter
+from .views import router as EntriesRouter

@@ -1,6 +1,4 @@
-__all__ = (
-    "AlarmRouter",
-)
+__all__ = ("AlarmRouter",)
 
 
-from webapp.api_v1.alarm.views import router as AlarmRouter
+from .views import router as AlarmRouter
