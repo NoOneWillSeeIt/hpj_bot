@@ -9,17 +9,17 @@ DB_FOLDER = BASE_DIR / 'db_instance'
 
 
 class DbSettings(BaseModel):
-    url: str = f"sqlite+aiosqlite:///{DB_FOLDER}/hpj_bot.db"
+    url: str = f"sqlite+aiosqlite:///{DB_FOLDER.as_posix()}/hpj_bot.db"
     echo: bool = False
 
 
 class TestDbSettings(DbSettings):
-    url = f"sqlite+aiosqlite:///{DB_FOLDER}/test_db.sqlite3"
-    echo = True
+    url: str = f"sqlite+aiosqlite:///{DB_FOLDER.as_posix()}/test_db.sqlite3"
+    echo: bool = True
 
 
 class AuthSettings(BaseModel):
-    pub_key: bytes | str = BASE_DIR / 'certs' / 'pub_key'
+    pub_key: Path = BASE_DIR / 'certs' / 'pub_key'
     algorithm: str = 'RS256'
 
 
