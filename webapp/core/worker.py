@@ -1,4 +1,5 @@
 import json
+import logging
 from collections import namedtuple
 
 import requests
@@ -16,9 +17,7 @@ from .settings import DbSettings, JinjaSettings, RedisSettings
 TaskInfo = namedtuple("TaskInfo", ["user_id", "channel", "channel_id", "start", "end"])
 
 
-def read_entries_from_db(
-    session: Session, info: TaskInfo
-) -> list[JournalEntry]:
+def read_entries_from_db(session: Session, info: TaskInfo) -> list[JournalEntry]:
     stmt = (
         select(JournalEntry)
         .where(JournalEntry.user_id == info.user_id)
@@ -32,8 +31,7 @@ def parse_task_info(task_info: str) -> TaskInfo:
         splitted = task_info.split(";")
         return TaskInfo(*splitted)
     except Exception:
-        # need logging on this case
-        pass
+        logging.error(f'Can\'t parse task info: "{task_info}"')
 
     return TaskInfo(*[None] * 5)
 
@@ -60,7 +58,6 @@ def worker(
             entry_rows = read_entries_from_db(session, info)
 
         if not entry_rows:
-            # maybe log this moment?
             continue
 
         out_file = html_gen.generate(
