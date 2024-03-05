@@ -10,7 +10,7 @@ from webapp.core.models import Base
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with db_helper.engine.begin() as conn:
+    async with db_helper.async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
 
