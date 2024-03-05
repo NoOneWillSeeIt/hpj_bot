@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from pydantic_settings import BaseSettings
 
 BASE_DIR = Path(os.getcwd())
+WEBAPP_DIR = BASE_DIR / 'webapp'
 DB_FOLDER = BASE_DIR / 'db_instance'
 
 
@@ -23,10 +24,22 @@ class AuthSettings(BaseModel):
     algorithm: str = 'RS256'
 
 
+class JinjaSettings(BaseModel):
+    templates_dir: Path = WEBAPP_DIR / 'journal_view' / 'templates'
+    journal_tmpl: str = "journal.html"
+
+
+class RedisSettings(BaseModel):
+    url: str = os.getenv('REDIS_URL', '')
+    port: int = int(os.getenv('REDIS_PORT', 0))
+
+
 class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
     db: DbSettings = DbSettings()
     auth: AuthSettings = AuthSettings()
+    jinja: JinjaSettings = JinjaSettings()
+    redis: RedisSettings = RedisSettings()
 
 
 settings = Settings()
