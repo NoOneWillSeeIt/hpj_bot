@@ -2,8 +2,10 @@ from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import List, Tuple
 
-from tg_bot.constants import ENTRY_KEY_FORMAT
-from tg_bot.survey import Survey, IQuestion, create_question
+from survey import Survey, IQuestion, create_question
+
+
+ENTRY_KEY_FORMAT = "%d.%m"
 
 
 class Questions(StrEnum):
@@ -63,7 +65,7 @@ def had_pain_next_q(answer: str) -> str:
     return Questions.FirstNotice if answer.lower() == 'да' else Questions.Painkillers
 
 
-def build_questions() -> dict[str, IQuestion]:
+def build_questions() -> dict[Questions, IQuestion]:
     """Build questions for survey"""
     yes_no_options = ['Да', 'Нет']
 
