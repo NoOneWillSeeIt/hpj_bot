@@ -30,8 +30,13 @@ class JinjaSettings(BaseModel):
 
 
 class RedisSettings(BaseModel):
-    url: str = os.getenv('REDIS_URL', '')
-    port: int = int(os.getenv('REDIS_PORT', 0))
+    url: str = os.getenv('REDIS_URL', 'localhost')
+    port: int = int(os.getenv('REDIS_PORT', 6379))
+
+
+class TestRedisSettings(RedisSettings):
+    url: str = 'localhost'
+    port: int = 6379
 
 
 class Settings(BaseSettings):
@@ -43,3 +48,8 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def init_test_settings():
+    global settings
+    settings = Settings(db=TestDbSettings(), redis=TestRedisSettings())
