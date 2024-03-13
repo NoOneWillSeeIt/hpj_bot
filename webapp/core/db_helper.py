@@ -1,4 +1,4 @@
-from contextlib import contextmanager
+from contextlib import asynccontextmanager, contextmanager
 from typing import AsyncGenerator, Generator
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -17,6 +17,14 @@ class DatabaseHelper:
             autocommit=False,
             expire_on_commit=False,
         )
+
+    @asynccontextmanager
+    async def async_session_context(self) -> AsyncGenerator[AsyncSession, None]:
+        session = self.async_sessionmaker()
+        try:
+            yield session
+        finally:
+            await session.aclose()
 
     async def async_session_dependency(self) -> AsyncGenerator[AsyncSession, None]:
         async with self.async_sessionmaker() as session:
