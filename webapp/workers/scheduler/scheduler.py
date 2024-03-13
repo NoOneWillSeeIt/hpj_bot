@@ -7,6 +7,7 @@ from uuid import uuid4
 import redis.asyncio as redis
 
 from webapp.core.settings import RedisSettings
+from webapp.workers.redis_constants import RedisKeys
 
 
 class FireCondition:
@@ -75,8 +76,8 @@ class Job:
 
 class Scheduler:
 
-    __jobs_key = "scheduler:jobs"
-    __jobs_runtimes = "scheduler:run_times"
+    __jobs_key = RedisKeys.scheduler_jobs
+    __jobs_runtimes = RedisKeys.scheduler_runtimes
     __delay: int = 1
 
     def __init__(self, redis_settings: RedisSettings):
@@ -85,6 +86,7 @@ class Scheduler:
         )
         self._eventloop = asyncio.get_event_loop()
         self._running_tasks: set[asyncio.Task] = set()
+        self._active = False
 
     async def add_job(
         self,
@@ -94,12 +96,18 @@ class Scheduler:
         start_date: datetime | None = None,
         interval: timedelta | None = None,
     ) -> Job:
+        if args is None:
+            args = []
+
+        if kwargs is None:
+            kwargs = {}
+
         now = datetime.now()
         fire_cond = FireCondition(start_date, interval)
         job = Job(func, args, kwargs, fire_cond)
         async with self.redis.pipeline() as pipe:
             pipe.multi()
-            pipe.hset(self.__jobs_key, job.id, pickle.dumps(job).decode("utf-8"))
+            pipe.hset(self.__jobs_key, job.id, pickle.dumps(job))
             pipe.zadd(
                 self.__jobs_runtimes,
                 {job.id: (job.get_next_fire_time(now) or now).timestamp()},
@@ -120,7 +128,16 @@ class Scheduler:
             await pipe.execute()
 
     async def start(self):
-        self._process_jobs()
+        self._active = True
+        await self._process_jobs()
+
+    async def stop(self):
+        self._active = False
+
+    async def shutdown(self):
+        self._active = False
+        if self._running_tasks:
+            asyncio.wait(self._running_tasks)
 
     async def _get_jobs(self, date: datetime) -> list[Job]:
         jobs_ids = await self.redis.zrangebyscore(
@@ -137,18 +154,16 @@ class Scheduler:
                 await self.redis.zrem(self.__jobs_runtimes, job_id)
                 continue
 
-            job_obj = pickle.loads(job_data.encode("utf-8"))
+            job_obj = pickle.loads(job_data)
             jobs.append(job_obj)
 
         return jobs
 
     def _run_job(self, job: Job):
-        def callback(future):
-            self._running_tasks.discard(future)
-
         future = self._eventloop.create_task(job.get_coro())
+        self._eventloop.create_future()
         self._running_tasks.add(future)
-        future.add_done_callback(callback)
+        future.add_done_callback(self._running_tasks.discard)
 
     async def _enqueue_job_repeat(self, jobs: list[Job], date: datetime):
         async with self.redis.pipeline() as pipe:
@@ -163,6 +178,9 @@ class Scheduler:
             await pipe.execute()
 
     async def _process_jobs(self):
+        if not self._active:
+            return
+
         now = datetime.now()
         jobs = await self._get_jobs(now)
         for job in jobs:
