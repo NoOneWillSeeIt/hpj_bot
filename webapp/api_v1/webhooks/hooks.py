@@ -11,6 +11,10 @@ class ChannelAlarms(BaseModel):
     time: str
 
 
+class Report(BaseModel):
+    report_file: Annotated[bytes, File()]
+
+
 @router.post("channel-alarm")
 async def alarm(body: ChannelAlarms):
     """
@@ -19,7 +23,7 @@ async def alarm(body: ChannelAlarms):
 
 
 @router.post("channel-weekly-report")
-async def weekly_report(body: Annotated[bytes, File()]):
+async def weekly_report(body: Report):
     """
     Weekly sends generated reports for users in particular channel.
     """
