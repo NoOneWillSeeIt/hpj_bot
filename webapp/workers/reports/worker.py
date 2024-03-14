@@ -1,7 +1,6 @@
 import json
 import logging
 import multiprocessing
-import signal
 from concurrent.futures import ProcessPoolExecutor
 
 import requests
@@ -14,22 +13,9 @@ from webapp.core.constants import ReportTaskProducer
 from webapp.core.db_helper import DatabaseHelper
 from webapp.core.models import JournalEntry
 from webapp.core.settings import DbSettings, JinjaSettings, init_test_settings, settings
-from webapp.journal_view.html_generator import HTMLGenerator
 from webapp.workers.redis_constants import RedisKeys, ReportTaskInfo
-
-
-class GracefulKiller:
-
-    exit_now = False
-    signum = None
-
-    def __init__(self):
-        for sig_code in [signal.SIGINT, signal.SIGTERM]:
-            signal.signal(sig_code, self.handle_signal)
-
-    def handle_signal(self, signum, frame):
-        self.exit_now = True
-        self.signum = signum
+from webapp.workers.reports.journal_view.html_generator import HTMLGenerator
+from webapp.workers.utils import GracefulKiller
 
 
 _process_db_helper: DatabaseHelper | None = None
