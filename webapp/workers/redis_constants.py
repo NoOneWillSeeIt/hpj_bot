@@ -11,18 +11,18 @@ class RedisKeys:
     __webhooks_url = "webhooks:{}-url"
 
     # hmap
-    scheduler_jobs = "scheduler:jobs"
-    alarms_jobs = "alarms:jobs"
+    scheduler_jobs = "scheduler:jobs"  # job_id: pickled job
+    alarms_jobs = "alarms:jobs"  # time: job_id
 
     # sorted set
-    scheduler_runtimes = "scheduler:runtimes"
+    scheduler_runtimes = "scheduler:runtimes"  # job_id: timestamp
 
     # list
     alarm_queue = "alarms:queue"
     reports_queue = "reports:queue"
 
     # set
-    __alarm_users = "alarms:{}:{}"
+    __alarm_users = "alarms:{}:{}"  # users subbed to alarm
 
     @classmethod
     def alarm_users(cls, channel: str, time: str) -> str:
@@ -77,8 +77,7 @@ class ReportTaskInfo(_ReportTaskInfo, TaskInfo):
         producer: ReportTaskProducer,
         start: str,
         end: str,
-    ):
-        ...
+    ): ...
 
     @classmethod
     def from_str(cls, info: str) -> Self | None:
@@ -98,8 +97,9 @@ class ReportTaskInfo(_ReportTaskInfo, TaskInfo):
 
 class AlarmTaskInfo(_AlarmTaskInfo, TaskInfo):
 
-    def __init__(self, action: AlarmActions, channel: Channel, channel_id: int, alarm: str):
-        ...
+    def __init__(
+        self, action: AlarmActions, channel: Channel, channel_id: int, alarm: str
+    ): ...
 
     @classmethod
     def from_str(cls, info: str) -> Self | None:

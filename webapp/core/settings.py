@@ -27,7 +27,9 @@ class AuthSettings(BaseModel):
 
 
 class JinjaSettings(BaseModel):
-    templates_dir: Path = WEBAPP_DIR / "journal_view" / "templates"
+    templates_dir: Path = (
+        WEBAPP_DIR / "workers" / "reports" / "journal_view" / "templates"
+    )
     journal_tmpl: str = "journal.html"
 
 
