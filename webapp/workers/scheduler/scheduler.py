@@ -82,7 +82,7 @@ class Scheduler:
 
     def __init__(self, redis_settings: RedisSettings):
         self.redis = redis.Redis(
-            host=redis_settings.url, port=redis_settings.port, db=redis_settings.db
+            host=redis_settings.host, port=redis_settings.port, db=redis_settings.db
         )
         self._eventloop = asyncio.get_event_loop()
         self._running_tasks: set[asyncio.Task] = set()
