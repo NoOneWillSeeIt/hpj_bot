@@ -5,8 +5,10 @@ from pydantic import BaseModel
 from pydantic_settings import BaseSettings
 
 BASE_DIR = Path(os.getcwd())
-WEBAPP_DIR = BASE_DIR / 'webapp'
-DB_FOLDER = BASE_DIR / 'db_instance'
+WEBAPP_DIR = BASE_DIR / "webapp"
+DB_FOLDER = BASE_DIR / "db_instance"
+DEFAULT_URL = "localhost"
+DEFAULT_REDIS_PORT = 6379
 
 
 class DbSettings(BaseModel):
@@ -20,23 +22,25 @@ class TestDbSettings(DbSettings):
 
 
 class AuthSettings(BaseModel):
-    pub_key: Path = BASE_DIR / 'certs' / 'pub_key'
-    algorithm: str = 'RS256'
+    pub_key: Path = BASE_DIR / "certs" / "pub_key"
+    algorithm: str = "RS256"
 
 
 class JinjaSettings(BaseModel):
-    templates_dir: Path = WEBAPP_DIR / 'journal_view' / 'templates'
+    templates_dir: Path = WEBAPP_DIR / "journal_view" / "templates"
     journal_tmpl: str = "journal.html"
 
 
 class RedisSettings(BaseModel):
-    url: str = os.getenv('REDIS_URL', 'localhost')
-    port: int = int(os.getenv('REDIS_PORT', 6379))
+    host: str = os.getenv("REDIS_URL", DEFAULT_URL)
+    port: int = int(os.getenv("REDIS_PORT", DEFAULT_REDIS_PORT))
+    db: int = 0
 
 
 class TestRedisSettings(RedisSettings):
-    url: str = 'localhost'
-    port: int = 6379
+    host: str = DEFAULT_URL
+    port: int = DEFAULT_REDIS_PORT
+    db: int = 0
 
 
 class Settings(BaseSettings):
