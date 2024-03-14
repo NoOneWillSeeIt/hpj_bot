@@ -1,8 +1,9 @@
 from contextlib import asynccontextmanager, contextmanager
 from typing import AsyncGenerator, Generator
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session, sessionmaker
 
 
 class DatabaseHelper:
@@ -19,7 +20,7 @@ class DatabaseHelper:
         )
 
     @asynccontextmanager
-    async def async_session_context(self) -> AsyncGenerator[AsyncSession, None]:
+    async def async_session(self) -> AsyncGenerator[AsyncSession, None]:
         session = self.async_sessionmaker()
         try:
             yield session
@@ -31,7 +32,7 @@ class DatabaseHelper:
             yield session
 
     @contextmanager
-    def session_context(self) -> Generator[Session, None, None]:
+    def session(self) -> Generator[Session, None, None]:
         session = self.sessionmaker()
         try:
             yield session
