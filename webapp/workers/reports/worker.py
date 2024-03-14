@@ -17,7 +17,6 @@ from webapp.workers.redis_constants import RedisKeys, ReportTaskInfo
 from webapp.workers.reports.journal_view.html_generator import HTMLGenerator
 from webapp.workers.utils import GracefulKiller
 
-
 _process_db_helper: DatabaseHelper | None = None
 _process_html_generator: HTMLGenerator | None = None
 _process_logger: logging.Logger | None = None
@@ -43,7 +42,7 @@ def read_entries_from_db(session: Session, info: ReportTaskInfo) -> list[Journal
     return session.scalars(stmt).all()
 
 
-def worker(info: ReportTaskInfo, url_to_send: str):
+def generate_report(info: ReportTaskInfo, url_to_send: str):
     entry_rows = []
     with _process_db_helper.session() as session:
         entry_rows = read_entries_from_db(session, info)
@@ -66,7 +65,7 @@ def worker(info: ReportTaskInfo, url_to_send: str):
     )
 
 
-def pool_handler(worker_count: int = 4, test_config: bool = False):
+def worker(worker_count: int = 4, test_config: bool = False):
 
     if test_config:
         init_test_settings()
@@ -77,7 +76,7 @@ def pool_handler(worker_count: int = 4, test_config: bool = False):
             initializer=init_process_worker,
             initargs=(settings.db, settings.jinja),
         ) as pool,
-        redis_helper.connection() as redis
+        redis_helper.connection() as redis,
     ):
         gk = GracefulKiller()
         while not gk.exit_now:
@@ -91,7 +90,7 @@ def pool_handler(worker_count: int = 4, test_config: bool = False):
                 continue
 
             channel_url = redis.get(f"{info.channel}_url")
-            pool.submit(worker, info, f"{channel_url}/{info.channel_id}")
+            pool.submit(generate_report, info, f"{channel_url}/{info.channel_id}")
 
         logging.log(f"Stopping workers by signal: {gk.signum}")
         pool.shutdown(wait=True)
