@@ -1,8 +1,10 @@
 from fastapi import APIRouter
 
 from webapp.api_v1.alarm.crud import get_alarms_for_channel, update_alarm
+from webapp.api_v1.alarm.jobs import enqueue_alarm_deleting, enqueue_alarm_setting
 from webapp.api_v1.alarm.schemas import ChannelAlarmsSchema, UserAlarmSchema
 from webapp.api_v1.common_dependencies import EnsureUserBodyDep, SessionDep
+from webapp.api_v1.common_dependencies.session_deps import RedisDep
 from webapp.core.constants import Channel
 
 router = APIRouter(prefix="/alarms", tags=["alarms"])
@@ -12,9 +14,17 @@ router = APIRouter(prefix="/alarms", tags=["alarms"])
 async def set_alarm(
     body: UserAlarmSchema,
     session: SessionDep,
+    redis: RedisDep,
     user: EnsureUserBodyDep,
 ) -> UserAlarmSchema:
-    return await update_alarm(session, user, body.alarm)
+    if user.alarm is not None:
+        enqueue_alarm_deleting(redis, user)
+
+    result = await update_alarm(session, user, body.alarm)
+    if body.alarm is not None:
+        enqueue_alarm_setting(redis, user, body.alarm)
+
+    return result
 
 
 @router.get("/get-alarms/{channel}")
