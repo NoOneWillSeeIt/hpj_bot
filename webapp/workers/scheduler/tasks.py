@@ -8,11 +8,7 @@ from webapp.core import db_helper, redis_helper
 from webapp.core.constants import Channel
 from webapp.core.models import User
 from webapp.workers.redis_constants import RedisKeys as rk
-from webapp.workers.redis_constants import (
-    ReportTaskInfo,
-    ReportTaskProducer,
-    serialize_report_task,
-)
+from webapp.workers.redis_constants import ReportTaskInfo, ReportTaskProducer
 
 
 async def call_channel_hook(url: str, payload: dict):
@@ -24,7 +20,7 @@ async def alarm_task(time: str):
     futures = []
     async with redis_helper.async_connection() as redis:
         for channel in Channel:
-            channel_subs = await redis.smembers(rk.alarm_users(channel, time))
+            channel_subs = await redis.smembers(rk.alarms_users(channel, time))
             if not channel_subs:
                 continue
 
@@ -57,7 +53,7 @@ async def order_report(
     task = ReportTaskInfo(
         user.id, user.channel, user.channel_id, producer, interval[0], interval[-1]
     )
-    await redis_client.rpush(rk.reports_queue, serialize_report_task(task))
+    await redis_client.rpush(rk.reports_queue, task.to_str())
 
 
 async def weekly_report_task():

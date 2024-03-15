@@ -12,21 +12,21 @@ class RedisKeys:
 
     # hmap
     scheduler_jobs = "scheduler:jobs"  # job_id: pickled job
-    alarms_jobs = "alarms:jobs"  # time: job_id
+    alarms_job = "alarms:jobs"  # time: job_id
 
     # sorted set
     scheduler_runtimes = "scheduler:runtimes"  # job_id: timestamp
 
     # list
-    alarm_queue = "alarms:queue"
+    alarms_queue = "alarms:queue"
     reports_queue = "reports:queue"
 
     # set
-    __alarm_users = "alarms:{}:{}"  # users subbed to alarm
+    __alarms_users = "alarms:{}:{}"  # users subbed to alarm
 
     @classmethod
-    def alarm_users(cls, channel: str, time: str) -> str:
-        return cls.__alarm_users.format(channel, time)
+    def alarms_users(cls, channel: str, time: str) -> str:
+        return cls.__alarms_users.format(channel, time)
 
     @classmethod
     def webhooks_url(cls, channel: str) -> str:
