@@ -84,7 +84,7 @@ class Scheduler:
         self.redis = redis.Redis(
             host=redis_settings.host, port=redis_settings.port, db=redis_settings.db
         )
-        self._eventloop = asyncio.get_event_loop()
+        self._eventloop = None
         self._running_tasks: set[asyncio.Task] = set()
         self._active = False
 
@@ -129,13 +129,15 @@ class Scheduler:
 
     async def start(self):
         self._active = True
-        await self._process_jobs()
+        self._eventloop = asyncio.get_running_loop()
+        self._task = self._eventloop.create_task(self._process_jobs())
 
     async def stop(self):
         self._active = False
 
     async def shutdown(self):
         self._active = False
+        await self._task
         if self._running_tasks:
             asyncio.wait(self._running_tasks)
 
@@ -161,7 +163,6 @@ class Scheduler:
 
     def _run_job(self, job: Job):
         future = self._eventloop.create_task(job.get_coro())
-        self._eventloop.create_future()
         self._running_tasks.add(future)
         future.add_done_callback(self._running_tasks.discard)
 
@@ -178,13 +179,11 @@ class Scheduler:
             await pipe.execute()
 
     async def _process_jobs(self):
-        if not self._active:
-            return
+        while self._active:
+            now = datetime.now()
+            jobs = await self._get_jobs(now)
+            for job in jobs:
+                self._run_job(job)
 
-        now = datetime.now()
-        jobs = await self._get_jobs(now)
-        for job in jobs:
-            self._run_job(job)
-
-        await self._enqueue_job_repeat(jobs, now)
-        self._eventloop.call_later(self.__delay, self._process_jobs)
+            await self._enqueue_job_repeat(jobs, now)
+            await asyncio.sleep(self.__delay)
