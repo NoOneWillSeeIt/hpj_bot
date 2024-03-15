@@ -12,7 +12,7 @@ class RedisHelper:
 
     @asynccontextmanager
     async def async_connection(self) -> AsyncGenerator[AsyncRedis, None]:
-        conn = AsyncRedis(connection_pool=self.redis.connection_pool)
+        conn = AsyncRedis(connection_pool=self.async_redis.connection_pool)
         try:
             yield conn
         finally:
