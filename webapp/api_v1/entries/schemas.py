@@ -32,3 +32,7 @@ class EntrySaveSchema(EntryBaseSchema, UserMixinSchema):
 class EntrySchema(EntryBaseSchema):
     id: int
     user_id: int
+
+
+class ReportOrder(BaseModel):
+    accepted_at: str
