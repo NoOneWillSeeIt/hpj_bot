@@ -7,7 +7,7 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
-from tg_bot.constants import DEVELOPER_CHAT_ID
+from tg_bot.constants import bot_settings
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -28,5 +28,5 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     )
 
     await context.bot.send_message(
-        chat_id=DEVELOPER_CHAT_ID, text=message, parse_mode=ParseMode.HTML
+        chat_id=bot_settings.developer_chat_id, text=message, parse_mode=ParseMode.HTML
     )
