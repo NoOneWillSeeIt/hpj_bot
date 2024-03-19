@@ -2,7 +2,6 @@ from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
 
 from tg_bot.commands import HPJCommands
-from tg_bot.constants import DAYS_TO_STORE
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -17,7 +16,7 @@ async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ' Время нужно указать по Москве, т.к. твой часовой пояс для меня загадка.\n\n'
         f'/{HPJCommands.ADD_ENTRY} - начать заполнение опросника. Можно заполнить за любой день,'
         ' достаточно лишь указать дату в формате дд.мм\n\n'
-        f'/{HPJCommands.LOAD} - выгрузить все сохранённые записи. Срок хранения - {DAYS_TO_STORE}'
+        f'/{HPJCommands.LOAD} - выгрузить все сохранённые записи. Срок хранения - 60'
         ' дней. Более ранние записи будут удаляться автоматически. Помимо этого в начале недели я'
         ' буду присылать тебе отчёт за прошедшие 7 дней. Увед будет тихим и сообщение будет'
         ' закреплено.\n\n'
