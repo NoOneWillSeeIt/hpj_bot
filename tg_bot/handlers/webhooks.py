@@ -38,11 +38,23 @@ async def alarms_update(update: WebhookAlarmsUpdate, context: CustomContext):
     reminder_text = (
         f"Привет, время заполнить журнал. Напиши /{HPJCommands.ADD_ENTRY} и вперёд!"
     )
-    if not (context.chat_data and context.chat_data.get('survey')):
+    if not (context.chat_data and context.chat_data.get("survey")):
         await context.bot.send_message(update.chat_id, reminder_text)
 
 
 async def report_update(update: WebhookReportUpdate, context: CustomContext):
+    queries = context.chat_data.get("report_queries")
+    if queries:
+        query_inline_message_id = queries.pop(0)
+        text = (
+            "Вот те записи, что у меня есть:"
+            if update.report_file
+            else "У меня нет твоих записей ¯\\_(ツ)_/¯"
+        )
+        await context.bot.edit_message_text(
+            text=text, inline_message_id=query_inline_message_id, reply_markup=None
+        )
+
     if update.report_file:
         await context.bot.send_document(
             chat_id=update.chat_id,

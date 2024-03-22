@@ -1,13 +1,16 @@
 from datetime import datetime
 
 from telegram import ReplyKeyboardRemove, Update
-from telegram.ext import CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
+from telegram.ext import (
+    CommandHandler,
+    ContextTypes,
+    ConversationHandler,
+    MessageHandler,
+    filters,
+)
 
 from tg_bot.commands import HPJCommands
-from tg_bot.constants import ALARM_JOB_PREFIX, MSK_TIMEZONE_OFFSET
-import tg_bot.db.aio_queries as asyncdb
-from tg_bot.jobs import reminder
-
+from ..requests import save_alarm
 
 ALARM_CONVO = 0
 
@@ -23,7 +26,8 @@ class AlarmHandlers:
         """
         if not await cls._set_alarm(update, context):
             await update.message.reply_text(
-                'Нужно указать время по московскому часовому поясу в виде чч:мм.')
+                "Нужно указать время по московскому часовому поясу в виде чч:мм."
+            )
             return ALARM_CONVO
 
         return ConversationHandler.END
@@ -33,12 +37,15 @@ class AlarmHandlers:
         """Alarm conversation. Conversation ends in any case."""
         if not await cls._set_alarm(update, context):
             await update.message.reply_text(
-                f'Неверный формат, попробуй ещё раз нажать /{HPJCommands.ALARM}')
+                f"Неверный формат, попробуй ещё раз нажать /{HPJCommands.ALARM}"
+            )
 
         return ConversationHandler.END
 
     @classmethod
-    async def _set_alarm(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    async def _set_alarm(
+        cls, update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> bool:
         """Sets alarm if update.message contains valid time and return True.
         Return False otherwise."""
         try:
@@ -47,18 +54,12 @@ class AlarmHandlers:
             if context.args:
                 user_input = context.args[0]
 
-            time = datetime.strptime(user_input, '%H:%M').time()
-            time = time.replace(tzinfo=MSK_TIMEZONE_OFFSET)
-
-            job_name = f'{ALARM_JOB_PREFIX}{chat_id}'
-            remove_job_if_exists(job_name, context)
-
-            context.job_queue.run_daily(reminder, time, name=job_name, chat_id=chat_id)
-
-            await asyncdb.write_alarm(context.bot_data, chat_id, time)
+            time = datetime.strptime(user_input, "%H:%M").time()
+            await save_alarm(chat_id, time)
 
             await update.message.reply_text(
-                f'Оповещения будут приходить в {time.strftime("%H:%M")}')
+                f'Оповещения будут приходить в {time.strftime("%H:%M")}'
+            )
         except (ValueError, IndexError):
             return False
 
@@ -68,21 +69,11 @@ class AlarmHandlers:
     async def cancel(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Drop alarm time from table."""
         chat_id = update.message.chat_id
-        remove_job_if_exists(f'{ALARM_JOB_PREFIX}{chat_id}', context)
-        await asyncdb.clear_alarm(context.bot_data, chat_id)
+        await save_alarm(chat_id, None)
         await update.message.reply_text(
-            'Больше уведомлений не будет. Спасибо за использование, выздоравливай!',
-            reply_markup=ReplyKeyboardRemove()
+            "Больше уведомлений не будет. Спасибо за использование, выздоравливай!",
+            reply_markup=ReplyKeyboardRemove(),
         )
-
-
-def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Remove job from queue."""
-    current_jobs = context.job_queue.get_jobs_by_name(name)
-    if not current_jobs:
-        return
-    for job in current_jobs:
-        job.schedule_removal()
 
 
 ALARM_CONVO_HANDLER = ConversationHandler(
@@ -94,7 +85,7 @@ ALARM_CONVO_HANDLER = ConversationHandler(
     },
     fallbacks=[],
     persistent=True,
-    name='alarm_convo',
+    name="alarm_convo",
 )
 
 
