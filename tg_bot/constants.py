@@ -28,6 +28,7 @@ class BotSettings(BaseSettings):
     token: str = Field(default='', validation_alias=AliasChoices('HPJ_TOKEN'))
     test_token: str = Field(default='', validation_alias=AliasChoices('HPJ_TEST_TOKEN'))
     test_chat: str = Field(default='', validation_alias=AliasChoices('HPJ_TEST_CHAT'))
+    remote_url: str = Field(default='', validation_alias=AliasChoices('HPJ_REMOTE_URL'))
 
 
 class OutputFileFormats(StrEnum):
@@ -37,3 +38,10 @@ class OutputFileFormats(StrEnum):
 
 
 bot_settings = BotSettings()
+
+
+def init_remote_settings(remote_url: str):
+    global bot_settings
+    settings_dump = bot_settings.model_dump()
+    settings_dump['remote_url'] = remote_url
+    bot_settings = BotSettings(**settings_dump)
