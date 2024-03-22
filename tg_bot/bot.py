@@ -12,9 +12,10 @@ from telegram.ext import (
 )
 
 from tg_bot.commands import DefaultMenuCommands
-from tg_bot.constants import PERSISTENCE_PATH, bot_settings
+from tg_bot.constants import PERSISTENCE_PATH, bot_settings, init_remote_settings
 from tg_bot.handlers import ALL_COMMAND_HANDLERS, ERROR_HANDLER
 from tg_bot.handlers.webhooks import WebhookAlarmsUpdate, WebhookReportUpdate
+from tg_bot.requests import set_remote_webhooks
 
 
 async def post_init(application: Application) -> None:
@@ -88,7 +89,8 @@ def configure_webapp(bot_app: Application) -> FastAPI:
 
 
 async def run_bot(bot_app: Application, server: uvicorn.Server, webhook_url: str):
-    await bot_app.bot.set_webhook(url=webhook_url, allowed_updates=Update.ALL_TYPES)
+    await set_remote_webhooks(f'{webhook_url}/webhooks')
+    await bot_app.bot.set_webhook(url=f'{webhook_url}/telegram', allowed_updates=Update.ALL_TYPES)
 
     async with bot_app:
         await bot_app.start()
@@ -97,8 +99,11 @@ async def run_bot(bot_app: Application, server: uvicorn.Server, webhook_url: str
 
 
 def start_bot(host: str, port: int, remote_url: str, test_config: bool = False):
+    if remote_url:
+        init_remote_settings(remote_url)
+
     bot_app = configure_bot(test_config)
     webapp = configure_webapp(bot_app)
     server = uvicorn.Server(uvicorn.Config(webapp, host=host, port=port))
 
-    asyncio.run(run_bot(bot_app, server, f"{host}:{port}/telegram"))
+    asyncio.run(run_bot(bot_app, server, f"{host}:{port}"))
