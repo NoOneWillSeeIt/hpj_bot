@@ -1,12 +1,13 @@
 from datetime import datetime
+
 from fastapi import APIRouter, HTTPException, status
 
 from webapp.api_v1.common_dependencies import (
     EnsureUserBodyDep,
     FindUserQueryDep,
+    RedisDep,
     SessionDep,
 )
-from webapp.api_v1.common_dependencies.session_deps import RedisDep
 from webapp.api_v1.entries.crud import get_entry, write_entry
 from webapp.api_v1.entries.jobs import enqueue_report_order
 from webapp.api_v1.entries.schemas import (
@@ -40,11 +41,11 @@ async def read_entry(
 ) -> EntryBaseSchema:
     db_entry = await get_entry(session, user.id, date)
     if not db_entry:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, 'Entry not exist')
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Entry not exist")
     return EntryBaseSchema(date=db_entry.date, entry=db_entry.entry)
 
 
-@router.get('/report')
+@router.get("/report")
 async def get_report(
     channel: Channel,
     channel_id: int,
