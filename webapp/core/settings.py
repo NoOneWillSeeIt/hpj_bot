@@ -51,6 +51,7 @@ class Settings(BaseSettings):
     auth: AuthSettings = AuthSettings()
     jinja: JinjaSettings = JinjaSettings()
     redis: RedisSettings = RedisSettings()
+    entry_store_days: int = 60
 
 
 settings = Settings()
