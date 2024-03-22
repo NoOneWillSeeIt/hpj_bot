@@ -50,7 +50,7 @@ async def get_report(
     channel_id: int,
     redis: RedisDep,
     user: FindUserQueryDep,
-    start_date: FormattedDate,
+    start_date: FormattedDate | None = None,
     end_date: FormattedDate | None = None,
 ) -> ReportOrder:
     await enqueue_report_order(redis, user, start_date, end_date)

@@ -1,16 +1,20 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from redis.asyncio import Redis as AsyncRedis
 
+from webapp.core import settings
 from webapp.core.models import User
 from webapp.workers.redis_constants import RedisKeys, ReportTaskInfo, ReportTaskProducer
 
 
 async def enqueue_report_order(
-    redis: AsyncRedis, user: User, start_date: str, end_date: str | None
+    redis: AsyncRedis, user: User, start_date: str | None, end_date: str | None
 ) -> int:
     if not end_date:
         end_date = datetime.today()
+
+    if not start_date:
+        start_date = end_date - timedelta(days=settings.entry_store_days)
 
     task_key = ReportTaskInfo(
         user.id,
