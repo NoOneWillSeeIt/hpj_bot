@@ -7,8 +7,8 @@ from sqlalchemy.future import select
 from webapp.core import db_helper, redis_helper
 from webapp.core.constants import Channel
 from webapp.core.models import User
-from webapp.workers.redis_constants import RedisKeys as rk
-from webapp.workers.redis_constants import ReportTaskInfo, ReportTaskProducer
+from webapp.core.redis import RedisKeys as rk
+from webapp.core.redis import ReportTaskInfo, ReportTaskProducer
 
 
 async def call_channel_hook(url: str, payload: dict):

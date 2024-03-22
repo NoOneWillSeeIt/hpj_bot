@@ -8,8 +8,8 @@ from redis.asyncio import Redis
 from webapp.core import redis_helper
 from webapp.core.constants import Channel
 from webapp.core.settings import init_test_settings, settings
-from webapp.workers.redis_constants import AlarmActions, AlarmTaskInfo
-from webapp.workers.redis_constants import RedisKeys as rk
+from webapp.core.redis import AlarmActions, AlarmTaskInfo
+from webapp.core.redis import RedisKeys as rk
 from webapp.workers.scheduler.scheduler import Scheduler
 from webapp.workers.scheduler.tasks import alarm_task, weekly_report_task
 from webapp.workers.utils import GracefulExit, GracefulKiller

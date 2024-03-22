@@ -4,7 +4,7 @@ from redis.asyncio import Redis as AsyncRedis
 
 from webapp.core import settings
 from webapp.core.models import User
-from webapp.workers.redis_constants import RedisKeys, ReportTaskInfo, ReportTaskProducer
+from webapp.core.redis import RedisKeys, ReportTaskInfo, ReportTaskProducer
 
 
 async def enqueue_report_order(

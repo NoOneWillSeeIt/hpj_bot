@@ -1,5 +1,5 @@
 from .db_helper import DatabaseHelper
-from .redis_helper import RedisHelper
+from .redis import RedisHelper
 from .settings import settings
 
 db_helper = DatabaseHelper(settings.db.url, settings.db.echo)

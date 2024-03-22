@@ -7,7 +7,7 @@ from uuid import uuid4
 import redis.asyncio as redis
 
 from webapp.core.settings import RedisSettings
-from webapp.workers.redis_constants import RedisKeys
+from webapp.core.redis import RedisKeys
 
 
 class FireCondition:

@@ -1,7 +1,7 @@
 from redis.asyncio import Redis as AsyncRedis
 
 from webapp.core.models import User
-from webapp.workers.redis_constants import AlarmActions, AlarmTaskInfo, RedisKeys
+from webapp.core.redis import AlarmActions, AlarmTaskInfo, RedisKeys
 
 
 async def _create_and_push_task(

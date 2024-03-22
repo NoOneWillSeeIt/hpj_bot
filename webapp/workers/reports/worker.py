@@ -13,7 +13,7 @@ from webapp.core.constants import ReportTaskProducer
 from webapp.core.db_helper import DatabaseHelper
 from webapp.core.models import JournalEntry
 from webapp.core.settings import DbSettings, JinjaSettings, init_test_settings, settings
-from webapp.workers.redis_constants import RedisKeys, ReportTaskInfo
+from webapp.core.redis import RedisKeys, ReportTaskInfo
 from webapp.workers.reports.journal_view.html_generator import HTMLGenerator
 from webapp.workers.utils import GracefulKiller
 
