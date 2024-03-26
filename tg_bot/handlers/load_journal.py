@@ -1,9 +1,9 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import CommandHandler, ContextTypes, CallbackQueryHandler
+from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
+from common.constants import OutputFileFormats
 from tg_bot.commands import HPJCommands
-from tg_bot.constants import OutputFileFormats
-from ..requests import order_report
+from tg_bot.requests import order_report
 
 
 class LoadJournalHandlers:
@@ -21,7 +21,7 @@ class LoadJournalHandlers:
 
         reply_markup = InlineKeyboardMarkup(keyboard)
 
-        await update.message.reply_text('Выбери формат:', reply_markup=reply_markup)
+        await update.message.reply_text("Выбери формат:", reply_markup=reply_markup)
 
     @classmethod
     async def load_choose(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -29,7 +29,9 @@ class LoadJournalHandlers:
         query = update.callback_query
         await query.answer()
         await order_report(query.message.chat_id)
-        context.chat_data.setdefault('report_queries', []).append(query.inline_message_id)
+        context.chat_data.setdefault("report_queries", []).append(
+            query.inline_message_id
+        )
 
 
 LOAD_HANDLER = CommandHandler(HPJCommands.LOAD, LoadJournalHandlers.load)
@@ -37,5 +39,5 @@ LOAD_HANDLER = CommandHandler(HPJCommands.LOAD, LoadJournalHandlers.load)
 
 LOAD_CALLBACK_HANDLER = CallbackQueryHandler(
     LoadJournalHandlers.load_choose,
-    pattern='^' + '|'.join(ext.value for ext in OutputFileFormats) + '$'
+    pattern="^" + "|".join(ext.value for ext in OutputFileFormats) + "$",
 )

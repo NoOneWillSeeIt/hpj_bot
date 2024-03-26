@@ -15,8 +15,7 @@ from telegram.ext import (
 from survey.hpj_questions import get_head_pain_survey
 from survey.survey import Survey
 from tg_bot.commands import HPJCommands, SurveyMenuCommands
-
-from ..requests import save_report
+from tg_bot.requests import save_report
 
 SURVEY_CONVO = 0
 

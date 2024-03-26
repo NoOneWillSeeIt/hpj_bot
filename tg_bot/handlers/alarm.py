@@ -10,7 +10,7 @@ from telegram.ext import (
 )
 
 from tg_bot.commands import HPJCommands
-from ..requests import save_alarm
+from tg_bot.requests import save_alarm
 
 ALARM_CONVO = 0
 
