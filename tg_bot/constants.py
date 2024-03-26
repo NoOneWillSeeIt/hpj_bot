@@ -1,4 +1,3 @@
-from datetime import timedelta, timezone
 from pathlib import Path
 
 from pydantic import AliasChoices, Field
@@ -14,11 +13,6 @@ PERSISTENCE_PATH = BOT_PATH / "persistence"
 STATIC_PATH = BOT_PATH / "static"
 FLASK_PIC_PATH = STATIC_PATH / "flask.png"
 HEALTH_PIC_PATH = STATIC_PATH / "health.png"
-
-# TIME
-MSK_TIMEZONE_OFFSET = timezone(timedelta(hours=3))
-ENTRY_KEY_FORMAT = "%d.%m"
-TIME_FORMAT = "%H:%M%z"
 
 
 class SslSettings(BaseSettings):
