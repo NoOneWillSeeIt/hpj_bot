@@ -11,7 +11,7 @@ from webapp.core.redis import AlarmActions, AlarmTaskInfo
 from webapp.core.redis import RedisKeys as rk
 from webapp.core.settings import init_test_settings, settings
 from webapp.workers.scheduler.scheduler import Scheduler
-from webapp.workers.scheduler.tasks import alarm_task, weekly_report_task
+from webapp.workers.scheduler.tasks import alarm_task, db_cleaner_task, weekly_report_task
 from webapp.workers.utils import GracefulExit, GracefulKiller
 
 
@@ -65,6 +65,9 @@ async def main():
     report_job = await scheduler.add_job(
         weekly_report_task, start_date=nearest_monday, interval=timedelta(days=7)
     )
+    db_cleaner_job = await scheduler.add_job(
+        db_cleaner_task, start_date=datetime.today(), interval=timedelta(days=1)
+    )
     await scheduler.start()
 
     gk = GracefulKiller(raise_ex=True)
@@ -84,6 +87,7 @@ async def main():
             await handle_alarm_task(info, scheduler, redis)
 
     await scheduler.remove_job(report_job)
+    await scheduler.remove_job(db_cleaner_job)
     await scheduler.shutdown()
 
 

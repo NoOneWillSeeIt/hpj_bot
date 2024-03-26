@@ -8,6 +8,10 @@ CERTS_DIR = BASE_DIR / "certs"
 
 MSK_TIMEZONE_OFFSET = timezone(timedelta(hours=3))
 
+DAYS_TO_STORE_ENTRIES = 60
+
+DB_DATE_FORMAT = "%d.%m.%y"
+
 
 class Channel(StrEnum):
     telegram = auto()

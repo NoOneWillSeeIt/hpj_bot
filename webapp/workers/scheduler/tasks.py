@@ -1,14 +1,15 @@
 import asyncio
+import logging
 from datetime import datetime, timedelta
 
 import httpx
 import redis.asyncio as aredis
-from sqlalchemy.future import select
+from sqlalchemy import delete, select
 
-from common.constants import Channel
+from common.constants import DAYS_TO_STORE_ENTRIES, DB_DATE_FORMAT, Channel
 from common.utils import concat_url
 from webapp.core import db_helper, redis_helper
-from webapp.core.models import User
+from webapp.core.models import JournalEntry, User
 from webapp.core.redis import RedisKeys as rk
 from webapp.core.redis import ReportTaskInfo, ReportTaskProducer
 
@@ -73,8 +74,8 @@ async def weekly_report_task():
         today = datetime.today()
         weekday = today.isoweekday()
         last_week_interval = (
-            (today - timedelta(days=weekday + 6)).strftime("%d.%m.%y"),  # monday
-            (today - timedelta(days=weekday)).strftime("%d.%m.%y"),  # sunday
+            (today - timedelta(days=weekday + 6)).strftime(DB_DATE_FORMAT),  # monday
+            (today - timedelta(days=weekday)).strftime(DB_DATE_FORMAT),  # sunday
         )
 
         ch_list = list(Channel)
@@ -91,3 +92,18 @@ async def weekly_report_task():
         ]
 
         asyncio.gather(*coros)
+
+
+async def db_cleaner_task():
+    today = datetime.today()
+    allowed_dates = [
+        (today - timedelta(days=i)).strftime(DB_DATE_FORMAT)
+        for i in range(DAYS_TO_STORE_ENTRIES)
+    ]
+    async with db_helper.async_session() as session:
+        stmt = select(JournalEntry.id).filter(JournalEntry.date.not_in(allowed_dates))
+        result = await session.execute(stmt)
+        result = list(result.scalars.all())
+        del_stmt = delete(JournalEntry).where(JournalEntry.id.in_(result))
+        session.execute(del_stmt)
+        logging.log(f"Deleted {len(result)} rows from JournalEntry")
