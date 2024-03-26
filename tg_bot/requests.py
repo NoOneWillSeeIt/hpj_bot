@@ -89,3 +89,12 @@ async def set_remote_webhooks(webhook_url: str):
     )
     if not ok:
         raise ConnectionError(f"Can't set webhooks. Server responded with: {response}")
+
+
+async def delete_remote_webhooks(webhook_url: str):
+    url = bot_settings.remote_url + "/unsubscribe"
+    ok, response = await send_request(
+        "post", url, json={"channel": CHANNEL, "url": webhook_url}
+    )
+    if not ok:
+        raise ConnectionError(f"Can't set webhooks. Server responded with: {response}")
