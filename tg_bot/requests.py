@@ -3,10 +3,15 @@ from datetime import datetime, time
 
 import httpx
 
+from common.utils import concat_url
 from survey.hpj_questions import prepare_answers_for_db
 from tg_bot.constants import bot_settings
 
 CHANNEL = "telegram"
+
+
+def get_remote_url(endpoint: str) -> str:
+    return concat_url(bot_settings.remote_url, endpoint)
 
 
 async def send_request(
@@ -23,7 +28,7 @@ async def order_report(
     end_date: datetime | None,
 ) -> bool:
 
-    url = bot_settings.remote_url + "/report"
+    url = get_remote_url("/report")
     ok, response = await send_request(
         "get",
         url,
@@ -42,7 +47,7 @@ async def order_report(
 
 async def save_alarm(chat_id: int, time: time | None) -> bool:
 
-    url = bot_settings.remote_url + "/set-alarm"
+    url = get_remote_url("/set-alarm")
     parsed_time = time.strftime("%H:%M") if time else None
     ok, response = await send_request(
         "post",
@@ -63,7 +68,7 @@ async def save_alarm(chat_id: int, time: time | None) -> bool:
 
 async def save_report(chat_id: int, replies: dict[str, str]) -> bool:
 
-    url = bot_settings.remote_url + "/save-entry"
+    url = get_remote_url("/save-entry")
     date, report = prepare_answers_for_db(replies)
     ok, response = await send_request(
         "post",
@@ -83,7 +88,7 @@ async def save_report(chat_id: int, replies: dict[str, str]) -> bool:
 
 async def set_remote_webhooks(webhook_url: str):
 
-    url = bot_settings.remote_url + "/subscribe"
+    url = get_remote_url("/subscribe")
     ok, response = await send_request(
         "post", url, json={"channel": CHANNEL, "url": webhook_url}
     )
@@ -92,7 +97,8 @@ async def set_remote_webhooks(webhook_url: str):
 
 
 async def delete_remote_webhooks(webhook_url: str):
-    url = bot_settings.remote_url + "/unsubscribe"
+
+    url = get_remote_url("/unsubscribe")
     ok, response = await send_request(
         "post", url, json={"channel": CHANNEL, "url": webhook_url}
     )
