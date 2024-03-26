@@ -15,7 +15,7 @@ typer = Typer()
 
 
 @typer.command(name="tgbot")
-def tgbot(host: str, port: int, remote_url: str = "", test_config: bool = False):
+def tgbot(host: str, port: int = 443, remote_url: str = "", test_config: bool = False):
     from telegram.constants import SUPPORTED_WEBHOOK_PORTS
 
     from tg_bot.bot import start_bot
