@@ -3,13 +3,13 @@ import logging
 import multiprocessing
 from concurrent.futures import ProcessPoolExecutor
 
-import requests
+import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from survey.hpj_questions import Questions
 from webapp.core import redis_helper
-from webapp.core.constants import ReportTaskProducer
+from common.constants import ReportTaskProducer
 from webapp.core.db_helper import DatabaseHelper
 from webapp.core.models import JournalEntry
 from webapp.core.settings import DbSettings, JinjaSettings, init_test_settings, settings
@@ -48,20 +48,23 @@ def generate_report(info: ReportTaskInfo, url_to_send: str):
         entry_rows = read_entries_from_db(session, info)
 
     if not entry_rows:
+        # if task was created by channel we need to send empty answer
         if info.producer == ReportTaskProducer.channel:
-            # TODO: return that no entries found if user asked for them
-            pass
-        else:
-            return
+            httpx.post(
+                url=url_to_send,
+                data={'channel_id': info.channel_id},
+            )
+        return
 
     out_file = _process_html_generator.generate(
         replies={row.date: json.loads(row.entry) for row in entry_rows},
     )
     filename = _process_html_generator.gen_filename(f"{info.start}-{info.end}")
 
-    requests.post(
+    httpx.post(
         url=url_to_send,
-        files={"upload_file": (filename, out_file, "multipart/form-data")},
+        data={'channel_id': info.channel_id},
+        files={"file": (filename, out_file, "multipart/form-data")},
     )
 
 
@@ -89,8 +92,8 @@ def worker(worker_count: int = 4, test_config: bool = False):
                 logging.error(f'Can\'t parse task info: "{info}"')
                 continue
 
-            channel_url = redis.get(f"{info.channel}_url")
-            pool.submit(generate_report, info, f"{channel_url}/{info.channel_id}")
+            channel_url = redis.get(RedisKeys.webhooks_url(info.channel))
+            pool.submit(generate_report, info, f"{channel_url}/reports")
 
         logging.log(f"Stopping workers by signal: {gk.signum}")
         pool.shutdown(wait=True)
