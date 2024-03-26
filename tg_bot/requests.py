@@ -4,7 +4,7 @@ from datetime import datetime, time
 import httpx
 
 from common.utils import concat_url
-from survey.hpj_questions import prepare_answers_for_db
+from common.survey.hpj_questions import prepare_answers_for_db
 from tg_bot.constants import bot_settings
 
 CHANNEL = "telegram"

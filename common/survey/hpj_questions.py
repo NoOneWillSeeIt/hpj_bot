@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import List, Tuple
 
-from survey import IQuestion, Survey, create_question
+from common.survey import IQuestion, Survey, create_question
 
 ENTRY_KEY_FORMAT = "%d.%m"
 

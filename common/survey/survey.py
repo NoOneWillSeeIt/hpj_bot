@@ -1,4 +1,4 @@
-from survey.question_base import IQuestion
+from .question_base import IQuestion
 
 
 class Survey:

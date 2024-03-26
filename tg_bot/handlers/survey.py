@@ -12,8 +12,8 @@ from telegram.ext import (
     filters,
 )
 
-from survey.hpj_questions import get_head_pain_survey
-from survey.survey import Survey
+from common.survey.hpj_questions import get_head_pain_survey
+from common.survey.survey import Survey
 from tg_bot.commands import HPJCommands, SurveyMenuCommands
 from tg_bot.requests import save_report
 

@@ -8,8 +8,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from common.constants import ReportTaskProducer
+from common.survey.hpj_questions import Questions
 from common.utils import concat_url
-from survey.hpj_questions import Questions
 from webapp.core import redis_helper
 from webapp.core.db_helper import DatabaseHelper
 from webapp.core.models import JournalEntry
