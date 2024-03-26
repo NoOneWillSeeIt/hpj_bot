@@ -5,11 +5,11 @@ from datetime import datetime, timedelta
 
 from redis.asyncio import Redis
 
+from common.constants import MSK_TIMEZONE_OFFSET, Channel
 from webapp.core import redis_helper
-from webapp.core.constants import Channel
-from webapp.core.settings import init_test_settings, settings
 from webapp.core.redis import AlarmActions, AlarmTaskInfo
 from webapp.core.redis import RedisKeys as rk
+from webapp.core.settings import init_test_settings, settings
 from webapp.workers.scheduler.scheduler import Scheduler
 from webapp.workers.scheduler.tasks import alarm_task, weekly_report_task
 from webapp.workers.utils import GracefulExit, GracefulKiller
@@ -23,7 +23,9 @@ def nearest_weekday(day=0) -> datetime:
 
 def create_start_date(time: str) -> datetime:
     start_time = datetime.strptime(time, "%H:%M").time()
-    start_date = datetime.combine(datetime.today(), start_time)
+    start_date = datetime.combine(
+        datetime.today(), start_time, tzinfo=MSK_TIMEZONE_OFFSET
+    )
     if datetime.now() > start_date:
         start_date = start_date + timedelta(days=1)
 
@@ -34,6 +36,7 @@ async def handle_alarm_task(info: AlarmTaskInfo, scheduler: Scheduler, redis: Re
     args_key = rk.alarms_users(info.channel, info.alarm)
     alarm_args = [rk.alarms_users(channel, info.alarm) for channel in Channel]
     if info.action == AlarmActions.add:
+        # create new job it there was none planned for specific time
         if not await redis.exists(*alarm_args):
             job = await scheduler.add_job(
                 alarm_task,

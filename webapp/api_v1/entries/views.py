@@ -2,6 +2,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, status
 
+from common.constants import Channel
 from webapp.api_v1.common_dependencies import (
     EnsureUserBodyDep,
     FindUserQueryDep,
@@ -16,7 +17,6 @@ from webapp.api_v1.entries.schemas import (
     FormattedDate,
     ReportOrder,
 )
-from webapp.core.constants import Channel
 
 router = APIRouter(prefix="/entries", tags=["entries"])
 

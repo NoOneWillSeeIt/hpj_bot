@@ -1,10 +1,10 @@
 from fastapi import APIRouter
 
+from common.constants import Channel
 from webapp.api_v1.alarm.crud import get_alarms_for_channel, update_alarm
 from webapp.api_v1.alarm.jobs import enqueue_alarm_deleting, enqueue_alarm_setting
 from webapp.api_v1.alarm.schemas import ChannelAlarmsSchema, UserAlarmSchema
 from webapp.api_v1.common_dependencies import EnsureUserBodyDep, RedisDep, SessionDep
-from webapp.core.constants import Channel
 
 router = APIRouter(prefix="/alarms", tags=["alarms"])
 

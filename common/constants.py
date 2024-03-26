@@ -1,9 +1,12 @@
 import os
+from datetime import timedelta, timezone
 from enum import StrEnum, auto
 from pathlib import Path
 
 BASE_DIR = Path(os.getcwd())
 CERTS_DIR = BASE_DIR / "certs"
+
+MSK_TIMEZONE_OFFSET = timezone(timedelta(hours=3))
 
 
 class Channel(StrEnum):

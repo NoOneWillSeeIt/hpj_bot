@@ -2,7 +2,7 @@ from collections import namedtuple
 from enum import StrEnum, auto
 from typing import Any, Self
 
-from webapp.core.constants import Channel
+from common.constants import Channel
 
 
 class RedisKeys:

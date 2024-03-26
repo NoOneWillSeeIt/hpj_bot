@@ -4,7 +4,8 @@ from pathlib import Path
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings
 
-BASE_DIR = Path(os.getcwd())
+from common.constants import BASE_DIR, CERTS_DIR
+
 WEBAPP_DIR = BASE_DIR / "webapp"
 DB_FOLDER = BASE_DIR / "db_instance"
 DEFAULT_URL = "localhost"
@@ -22,7 +23,7 @@ class TestDbSettings(DbSettings):
 
 
 class AuthSettings(BaseModel):
-    pub_key: Path = BASE_DIR / "certs" / "pub_key"
+    pub_key: Path = CERTS_DIR / "pub_key"
     algorithm: str = "RS256"
 
 

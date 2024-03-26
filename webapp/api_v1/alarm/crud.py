@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from common.constants import Channel
 from webapp.api_v1.alarm.schemas import ChannelAlarmsSchema, UserAlarmSchema
-from webapp.core.constants import Channel
 from webapp.core.models import User
 
 

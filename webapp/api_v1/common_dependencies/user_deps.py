@@ -4,9 +4,9 @@ from fastapi import Body, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from common.constants import Channel
 from webapp.api_v1.common_dependencies.schemas import UserMixinSchema
 from webapp.api_v1.common_dependencies.session_deps import SessionDep
-from webapp.core.constants import Channel
 from webapp.core.models import User as UserModel
 
 

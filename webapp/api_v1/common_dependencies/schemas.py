@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from webapp.core.constants import Channel
+from common.constants import Channel
 
 
 class UserChannelSchema(BaseModel):
