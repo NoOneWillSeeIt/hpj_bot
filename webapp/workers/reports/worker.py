@@ -7,13 +7,14 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from common.constants import ReportTaskProducer
+from common.utils import concat_url
 from survey.hpj_questions import Questions
 from webapp.core import redis_helper
-from common.constants import ReportTaskProducer
 from webapp.core.db_helper import DatabaseHelper
 from webapp.core.models import JournalEntry
-from webapp.core.settings import DbSettings, JinjaSettings, init_test_settings, settings
 from webapp.core.redis import RedisKeys, ReportTaskInfo
+from webapp.core.settings import DbSettings, JinjaSettings, init_test_settings, settings
 from webapp.workers.reports.journal_view.html_generator import HTMLGenerator
 from webapp.workers.utils import GracefulKiller
 
@@ -52,7 +53,7 @@ def generate_report(info: ReportTaskInfo, url_to_send: str):
         if info.producer == ReportTaskProducer.channel:
             httpx.post(
                 url=url_to_send,
-                data={'channel_id': info.channel_id},
+                data={"channel_id": info.channel_id},
             )
         return
 
@@ -63,7 +64,7 @@ def generate_report(info: ReportTaskInfo, url_to_send: str):
 
     httpx.post(
         url=url_to_send,
-        data={'channel_id': info.channel_id},
+        data={"channel_id": info.channel_id},
         files={"file": (filename, out_file, "multipart/form-data")},
     )
 
@@ -93,7 +94,7 @@ def worker(worker_count: int = 4, test_config: bool = False):
                 continue
 
             channel_url = redis.get(RedisKeys.webhooks_url(info.channel))
-            pool.submit(generate_report, info, f"{channel_url}/reports")
+            pool.submit(generate_report, info, concat_url(channel_url, "reports"))
 
         logging.log(f"Stopping workers by signal: {gk.signum}")
         pool.shutdown(wait=True)

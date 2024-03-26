@@ -1,19 +1,25 @@
 import asyncio
 from datetime import datetime, timedelta
 
+import httpx
 import redis.asyncio as aredis
 from sqlalchemy.future import select
 
+from common.constants import Channel
+from common.utils import concat_url
 from webapp.core import db_helper, redis_helper
-from webapp.core.constants import Channel
 from webapp.core.models import User
 from webapp.core.redis import RedisKeys as rk
 from webapp.core.redis import ReportTaskInfo, ReportTaskProducer
 
 
-async def call_channel_hook(url: str, payload: dict):
-    # TODO: write async call. requests module is sync and will block worker
-    ...
+async def call_channel_hook(
+    url: str,
+    *,
+    json: dict | None = None,
+) -> httpx.Response:
+    async with httpx.AsyncClient() as client:
+        return await client.post(url, json=json)
 
 
 async def alarm_task(time: str):
@@ -26,8 +32,8 @@ async def alarm_task(time: str):
 
             channel_url = await redis.get(rk.webhooks_url(channel))
             coro = call_channel_hook(
-                f"{channel_url}/channel-alarm",
-                {"channel_ids": channel_subs, "time": time},
+                concat_url(channel_url, "alarms"),
+                json={"channel_ids": channel_subs, "time": time},
             )
             futures.append(coro)
 
@@ -39,7 +45,7 @@ async def get_channel_users(channels: list[Channel]) -> list[User]:
     async with db_helper.async_session() as session:
         stmt = select(User).where(User.channel.in_(channels))
         result = await session.execute(stmt)
-        users = result.scalars().all()
+        users = list(result.scalars().all())
 
     return users
 
@@ -51,7 +57,12 @@ async def order_report(
     interval: list[str],
 ):
     task = ReportTaskInfo(
-        user.id, user.channel, user.channel_id, producer, interval[0], interval[-1]
+        user.id,
+        Channel(user.channel),
+        user.channel_id,
+        producer,
+        interval[0],
+        interval[-1],
     )
     await redis_client.rpush(rk.reports_queue, task.to_str())
 
