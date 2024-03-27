@@ -1,4 +1,5 @@
 from collections import namedtuple
+from datetime import datetime
 from enum import StrEnum, auto
 from typing import Any, Self
 
@@ -108,6 +109,7 @@ class AlarmTaskInfo(_AlarmTaskInfo, TaskInfo):
             splitted[0] = AlarmActions(splitted[0])  # action
             splitted[1] = Channel(splitted[1])  # channel
             splitted[2] = int(splitted[2])  # channel_id
+            datetime.strptime(splitted[3], "%H:%M")  # check time conforms to format
 
             return cls(*splitted)
         except Exception:
