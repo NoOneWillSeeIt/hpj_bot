@@ -1,42 +1,60 @@
 import asyncio
+import logging
 import math
 import pickle
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, tzinfo
 from uuid import uuid4
 
 import redis.asyncio as redis
 
-from webapp.core.settings import RedisSettings
 from webapp.core.redis import RedisKeys
+from webapp.core.settings import RedisSettings
+
+logger = logging.getLogger("Scheduler")
 
 
 class FireCondition:
 
-    def __init__(self, start_date: datetime | None, interval: timedelta | None) -> None:
-        self.start_date = start_date if start_date else datetime.now()
+    def __init__(
+        self,
+        start: datetime | None,
+        interval: timedelta | None,
+        *,
+        offset: tzinfo | None = None,
+    ) -> None:
+        self.offset = offset
+        self.start = start if start else datetime.now(self.offset)
         self.interval = interval
 
     def __getstate__(self) -> object:
         return {
-            "start_date": self.start_date,
+            "start_date": self.start,
             "interval": self.interval,
+            "offset": self.offset,
         }
 
     def __setstate__(self, state):
-        self.start_date = state["start_date"]
+        self.start = state["start_date"]
         self.interval = state["interval"]
+        self.offset = state["offset"]
+
+    def __repr__(self) -> str:
+        return (
+            f"FireCond(start={self.start}, "
+            f"interval={self.interval}, offset={self.offset})"
+        )
 
     def get_next_fire_time(self, date: datetime | None = None) -> datetime | None:
-        date = date or datetime.now()
-        if self.start_date > date:
-            return self.start_date
+        date = date or datetime.now(self.offset)
+        if self.start > date:
+            return self.start
 
         if not self.interval:
             return None
 
-        timediff = (date - self.start_date).total_seconds()
+        timediff = (date - self.start).total_seconds()
         intervals_num = int(math.ceil(timediff / self.interval.total_seconds()))
-        return self.start_date + self.interval * intervals_num
+        return self.start + self.interval * intervals_num
 
 
 class Job:
@@ -67,6 +85,9 @@ class Job:
         self.kwargs = state["kwargs"]
         self.fire_cond = state["fire_cond"]
 
+    def __repr__(self) -> str:
+        return f"Job(id={self.id}, func={self.func.__qualname__}, fire_cond={repr(self.fire_cond)})"
+
     def get_coro(self):
         return self.func(*self.args, **self.kwargs)
 
@@ -85,8 +106,12 @@ class Scheduler:
             host=redis_settings.host, port=redis_settings.port, db=redis_settings.db
         )
         self._eventloop = None
+        self._offset: tzinfo | None = None
         self._running_tasks: set[asyncio.Task] = set()
         self._active = False
+
+    def set_timezone(self, offset: tzinfo):
+        self._offset = offset
 
     async def add_job(
         self,
@@ -102,8 +127,11 @@ class Scheduler:
         if kwargs is None:
             kwargs = {}
 
-        now = datetime.now()
-        fire_cond = FireCondition(start_date, interval)
+        if start_date and start_date.tzinfo is None and self._offset is not None:
+            start_date = start_date.replace(tzinfo=self._offset)
+
+        now = datetime.now(self._offset)
+        fire_cond = FireCondition(start_date, interval, offset=self._offset)
         job = Job(func, args, kwargs, fire_cond)
         async with self.redis.pipeline() as pipe:
             pipe.multi()
@@ -114,6 +142,7 @@ class Scheduler:
             )
             await pipe.execute()
 
+        logger.info(f"New job {repr(job)} was added")
         return job
 
     async def remove_job(self, job: Job | str):
@@ -131,13 +160,16 @@ class Scheduler:
         self._active = True
         self._eventloop = asyncio.get_running_loop()
         self._task = self._eventloop.create_task(self._process_jobs())
+        logger.info("Starting scheduler")
 
     async def stop(self):
         self._active = False
+        logger.info("Stopping scheduler")
 
     async def shutdown(self):
         self._active = False
         await self._task
+        logger.info("Shutting down scheduler. Waiting for tasks to finish")
         if self._running_tasks:
             asyncio.wait(self._running_tasks)
 
@@ -152,7 +184,7 @@ class Scheduler:
         jobs_data = await self.redis.hmget(self.__jobs_key, jobs_ids)
         for job_id, job_data in zip(jobs_ids, jobs_data):
             if not job_data:
-                # TODO: log this moment
+                logger.error(f"No job data was found for job {job_id}")
                 await self.redis.zrem(self.__jobs_runtimes, job_id)
                 continue
 
@@ -162,9 +194,17 @@ class Scheduler:
         return jobs
 
     def _run_job(self, job: Job):
-        future = self._eventloop.create_task(job.get_coro())
-        self._running_tasks.add(future)
-        future.add_done_callback(self._running_tasks.discard)
+        def callback(task: asyncio.Task):
+            self._running_tasks.discard(task)
+            if ex := task.exception():
+                logger.error(
+                    f"Unhandled exception occured while {repr(job)} was running: ",
+                    exc_info=ex,
+                )
+
+        task = self._eventloop.create_task(job.get_coro())
+        self._running_tasks.add(task)
+        task.add_done_callback(callback)
 
     async def _enqueue_job_repeat(self, jobs: list[Job], date: datetime):
         async with self.redis.pipeline() as pipe:
@@ -180,7 +220,7 @@ class Scheduler:
 
     async def _process_jobs(self):
         while self._active:
-            now = datetime.now()
+            now = datetime.now(self._offset)
             jobs = await self._get_jobs(now)
             for job in jobs:
                 self._run_job(job)
