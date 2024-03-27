@@ -7,8 +7,8 @@ from redis.asyncio import Redis as AsyncRedis
 class RedisHelper:
 
     def __init__(self, host: str, port: int, db: int):
-        self.redis = Redis(host, port, db)
-        self.async_redis = AsyncRedis(host=host, port=port, db=db)
+        self.redis = Redis(host, port, db, decode_responses=True)
+        self.async_redis = AsyncRedis(host=host, port=port, db=db, decode_responses=True)
 
     @asynccontextmanager
     async def async_connection(self) -> AsyncGenerator[AsyncRedis, None]:
