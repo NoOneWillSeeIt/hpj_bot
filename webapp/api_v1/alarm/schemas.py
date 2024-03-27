@@ -30,6 +30,10 @@ class UserAlarmSchema(UserMixinSchema):
     alarm: FormattedTime
 
 
+class IsNewUserSchema(BaseModel):
+    is_new: bool
+
+
 class ChannelAlarmsSchema(BaseModel):
     channel_id: int
     alarm: str

@@ -22,7 +22,7 @@ async def get_alarms_for_channel(
     stmt = (
         select(User.channel_id, User.alarm)
         .where(User.channel == channel)
-        .where(User.alarm is not None)
+        .where(User.alarm != None)
     )
     result = await session.execute(stmt)
     return list(result.all())
