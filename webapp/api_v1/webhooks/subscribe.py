@@ -27,4 +27,4 @@ async def subscribe(body: SubscribeSchema, redis: RedisDep):
 
 @router.post("/unsubscribe")
 async def unsubscribe(body: UnsubSchema, redis: RedisDep):
-    await redis.delete(RedisKeys.webhooks_url(body.channel))
+    await redis.unlink(RedisKeys.webhooks_url(body.channel))
