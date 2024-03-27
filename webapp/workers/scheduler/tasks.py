@@ -34,11 +34,11 @@ async def alarm_task(time: str):
             channel_url = await redis.get(rk.webhooks_url(channel))
             coro = call_channel_hook(
                 concat_url(channel_url, "alarms"),
-                json={"channel_ids": channel_subs, "time": time},
+                json={"channel_ids": list(channel_subs), "time": time},
             )
             futures.append(coro)
 
-    asyncio.gather(*futures)
+    await asyncio.gather(*futures)
 
 
 async def get_channel_users(channels: list[Channel]) -> list[User]:
@@ -91,7 +91,7 @@ async def weekly_report_task():
             for user in users
         ]
 
-        asyncio.gather(*coros)
+        await asyncio.gather(*coros)
 
 
 async def db_cleaner_task():
