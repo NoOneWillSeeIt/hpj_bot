@@ -1,17 +1,23 @@
 import asyncio
 import logging
 import platform
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 
 from redis.asyncio import Redis
+from sqlalchemy import select
 
 from common.constants import MSK_TIMEZONE_OFFSET, Channel
-from webapp.core import redis_helper
+from webapp.core import db_helper, redis_helper
+from webapp.core.models import User
 from webapp.core.redis import AlarmActions, AlarmTaskInfo
 from webapp.core.redis import RedisKeys as rk
 from webapp.core.settings import init_test_settings, settings
 from webapp.workers.scheduler.scheduler import Scheduler
-from webapp.workers.scheduler.tasks import alarm_task, db_cleaner_task, weekly_report_task
+from webapp.workers.scheduler.tasks import (
+    alarm_task,
+    db_cleaner_task,
+    weekly_report_task,
+)
 from webapp.workers.utils import GracefulExit, GracefulKiller
 
 
@@ -23,11 +29,7 @@ def nearest_weekday(day=0) -> datetime:
 
 def create_start_date(time: str) -> datetime:
     start_time = datetime.strptime(time, "%H:%M").time()
-    start_date = datetime.combine(
-        datetime.today(), start_time, tzinfo=MSK_TIMEZONE_OFFSET
-    )
-    if datetime.now() > start_date:
-        start_date = start_date + timedelta(days=1)
+    start_date = datetime.combine(datetime.today(), start_time)
 
     return start_date
 
@@ -35,6 +37,7 @@ def create_start_date(time: str) -> datetime:
 async def handle_alarm_task(info: AlarmTaskInfo, scheduler: Scheduler, redis: Redis):
     args_key = rk.alarms_users(info.channel, info.alarm)
     alarm_args = [rk.alarms_users(channel, info.alarm) for channel in Channel]
+
     if info.action == AlarmActions.add:
         # create new job it there was none planned for specific time
         if not await redis.exists(*alarm_args):
@@ -57,17 +60,53 @@ async def handle_alarm_task(info: AlarmTaskInfo, scheduler: Scheduler, redis: Re
             await redis.hdel(rk.alarms_job, info.alarm)
 
 
-async def main():
-    nearest_monday = nearest_weekday(0)
-    nearest_monday = nearest_monday.replace(hour=23, minute=0, second=0)
+async def clean_redis_keys():
+    keys_to_del = [
+        rk.scheduler_jobs,
+        rk.scheduler_runtimes,
+        rk.alarms_queue,
+        rk.alarms_job,
+    ]
+    alarms_keys = []
+    async with redis_helper.async_connection() as redis:
+        alarms_keys = [key async for key in redis.scan_iter("alarms:*:*", _type="set")]
+        await redis.unlink(*keys_to_del, *alarms_keys)
 
+
+async def initialize_scheduler_tasks(scheduler: Scheduler):
+    await clean_redis_keys()
+
+    nearest_monday = nearest_weekday(0)
+    scheduler.set_timezone(MSK_TIMEZONE_OFFSET)
+    await scheduler.add_job(
+        weekly_report_task,
+        start_date=datetime.combine(nearest_monday, time(hour=23)),
+        interval=timedelta(days=7),
+    )
+    await scheduler.add_job(
+        db_cleaner_task,
+        start_date=datetime.combine(datetime.today(), time(hour=22)),
+        interval=timedelta(days=1),
+    )
+
+    users: list[User] = []
+    async with db_helper.async_session() as session:
+        users = await session.scalars(select(User).where(User.alarm.is_not(None)))
+
+    async with redis_helper.async_connection() as redis:
+        for user in users:
+            await handle_alarm_task(
+                AlarmTaskInfo(
+                    AlarmActions.add, user.channel, user.channel_id, user.alarm
+                ),
+                scheduler,
+                redis,
+            )
+
+
+async def main():
     scheduler = Scheduler(settings.redis)
-    report_job = await scheduler.add_job(
-        weekly_report_task, start_date=nearest_monday, interval=timedelta(days=7)
-    )
-    db_cleaner_job = await scheduler.add_job(
-        db_cleaner_task, start_date=datetime.today(), interval=timedelta(days=1)
-    )
+    await initialize_scheduler_tasks(scheduler)
     await scheduler.start()
 
     gk = GracefulKiller(raise_ex=True)
@@ -77,17 +116,15 @@ async def main():
             if not task_key:
                 continue
 
-            info = AlarmTaskInfo.from_str(task_key[1].decode("utf-8"))
+            info = AlarmTaskInfo.from_str(task_key[1])
             if not info:
                 logging.error(
-                    f"Can't parse task info: {task_key[1]}, {type(task_key[1])}"
+                    f"Can't parse task info: {task_key[1]}"
                 )
                 continue
 
             await handle_alarm_task(info, scheduler, redis)
 
-    await scheduler.remove_job(report_job)
-    await scheduler.remove_job(db_cleaner_job)
     await scheduler.shutdown()
 
 
@@ -96,7 +133,7 @@ def worker(test_config: bool = False):
         init_test_settings()
 
     if platform.system() == "Windows":
-        # loop not closes properly on loop.close() by deafult on windows
+        # loop not closes properly on loop.close() by default on windows
         # https://stackoverflow.com/questions/45600579/asyncio-event-loop-is-closed-when-getting-loop
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
@@ -104,7 +141,7 @@ def worker(test_config: bool = False):
     try:
         loop.run_until_complete(main())
     except GracefulExit:
-        logging.info("Got termination signal. Shutting down worker.")
+        logging.info("Worker got termination signal. Shutting down...")
 
         group = asyncio.gather(*asyncio.all_tasks(loop=loop))
         loop.run_until_complete(group)
