@@ -1,30 +1,33 @@
-import os
 from pathlib import Path
 
-from pydantic import BaseModel
-from pydantic_settings import BaseSettings
+from pydantic import BaseModel, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from common.constants import BASE_DIR, CERTS_DIR
+from common.constants import BASE_DIR, AuthSettings
 
 WEBAPP_DIR = BASE_DIR / "webapp"
 DB_FOLDER = BASE_DIR / "db_instance"
+DB_ENGINE = "sqlite+aiosqlite://"
 DEFAULT_URL = "localhost"
 DEFAULT_REDIS_PORT = 6379
 
 
-class DbSettings(BaseModel):
-    url: str = f"sqlite+aiosqlite:///{DB_FOLDER.as_posix()}/hpj_bot.db"
+class DbSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="hpj_db_")
+
+    url: str = Field(
+        default=f"{DB_ENGINE}/{DB_FOLDER.as_posix()}/hpj_bot.db",
+        validation_alias="url",
+    )
     echo: bool = False
 
 
 class TestDbSettings(DbSettings):
-    url: str = f"sqlite+aiosqlite:///{DB_FOLDER.as_posix()}/test_db.sqlite3"
+    url: str = Field(
+        default=f"{DB_ENGINE}/{DB_FOLDER.as_posix()}/hpj_test.db",
+        validation_alias="test_url",
+    )
     echo: bool = True
-
-
-class AuthSettings(BaseModel):
-    pub_key: Path = CERTS_DIR / "pub_key"
-    algorithm: str = "RS256"
 
 
 class JinjaSettings(BaseModel):
@@ -34,9 +37,11 @@ class JinjaSettings(BaseModel):
     journal_tmpl: str = "journal.html"
 
 
-class RedisSettings(BaseModel):
-    host: str = os.getenv("REDIS_URL", DEFAULT_URL)
-    port: int = int(os.getenv("REDIS_PORT", DEFAULT_REDIS_PORT))
+class RedisSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="redis_")
+
+    host: str = Field(default=DEFAULT_URL, validation_alias="url")
+    port: int = Field(default=DEFAULT_REDIS_PORT, validation_alias="port")
     db: int = 0
 
 

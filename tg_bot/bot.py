@@ -3,7 +3,7 @@ from typing import Annotated
 
 import httpx
 import uvicorn
-from fastapi import FastAPI, Form, Request, Response, UploadFile
+from fastapi import Depends, FastAPI, Form, Request, Response, UploadFile
 from pydantic import BaseModel
 from telegram import Update
 from telegram.ext import (
@@ -13,7 +13,7 @@ from telegram.ext import (
     PicklePersistence,
 )
 
-from common.utils import concat_url
+from common.utils import AuthSettingsDependency, check_jwt_token_dep, concat_url
 from tg_bot.commands import DefaultMenuCommands
 from tg_bot.constants import PERSISTENCE_PATH, bot_settings, init_remote_settings
 from tg_bot.handlers import ALL_COMMAND_HANDLERS, ERROR_HANDLER
@@ -66,14 +66,14 @@ def configure_webapp(bot_app: Application) -> FastAPI:
     async def healthcheck() -> str:
         return "bot is UP!"
 
-    @app.post("/webhooks/alarms")
+    @app.post("/webhooks/alarms", dependencies=[Depends(check_jwt_token_dep)])
     async def alarms_webhook(body: WebhookAlarmsRequest):
         for chat_id in body.channel_ids:
             await bot_app.update_queue.put(
                 WebhookAlarmsUpdate(chat_id=chat_id, time=body.time)
             )
 
-    @app.post("/webhooks/reports")
+    @app.post("/webhooks/reports", dependencies=[Depends(check_jwt_token_dep)])
     async def reports_webhook(
         channel_id: Annotated[int, Form()], file: UploadFile | None = None
     ):
@@ -111,6 +111,8 @@ async def run_bot(bot_app: Application, server: uvicorn.Server, webhook_url: str
 def start_bot(host: str, port: int, remote_url: str, test_config: bool = False):
     if remote_url:
         init_remote_settings(remote_url)
+
+    AuthSettingsDependency.set_new(bot_settings.auth)
 
     bot_app = configure_bot(test_config)
     webapp = configure_webapp(bot_app)

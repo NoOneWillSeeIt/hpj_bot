@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 typer = Typer()
 
 
-@typer.command(name="tgbot")
+@typer.command()
 def tgbot(host: str, port: int = 443, remote_url: str = "", test_config: bool = False):
     from telegram.constants import SUPPORTED_WEBHOOK_PORTS
 
@@ -35,7 +35,8 @@ def webapp(host: str = "localhost", port: int = 8000, test_config: bool = False)
 
     import uvicorn
 
-    from webapp.core.settings import DB_FOLDER, init_test_settings
+    from common.utils import AuthSettingsDependency
+    from webapp.core.settings import DB_FOLDER, init_test_settings, settings
     from webapp.fastapi_app import app
 
     dirs = os.listdir()
@@ -45,6 +46,7 @@ def webapp(host: str = "localhost", port: int = 8000, test_config: bool = False)
     if test_config:
         init_test_settings()
 
+    AuthSettingsDependency.set_new(settings.auth)
     uvicorn.run(app, host=host, port=port)
 
 
