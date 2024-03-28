@@ -106,4 +106,5 @@ async def db_cleaner_task():
         result = list(result.scalars.all())
         del_stmt = delete(JournalEntry).where(JournalEntry.id.in_(result))
         session.execute(del_stmt)
+        session.commit()
         logging.log(f"Deleted {len(result)} rows from JournalEntry")
