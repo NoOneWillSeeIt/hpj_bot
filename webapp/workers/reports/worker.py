@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from common.constants import ReportTaskProducer
 from common.survey.hpj_questions import Questions
-from common.utils import concat_url
+from common.utils import concat_url, gen_jwt_token
 from webapp.core import redis_helper
 from webapp.core.db_helper import DatabaseHelper
 from webapp.core.models import JournalEntry
@@ -66,6 +66,7 @@ def generate_report(info: ReportTaskInfo, url_to_send: str):
         url=url_to_send,
         data={"channel_id": info.channel_id},
         files={"file": (filename, out_file, "multipart/form-data")},
+        headers={"x-bearer": gen_jwt_token({"issuer": "webapp", "reason": "alarms"})},
     )
 
 

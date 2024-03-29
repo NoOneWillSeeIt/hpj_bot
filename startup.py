@@ -35,8 +35,7 @@ def webapp(host: str = "localhost", port: int = 8000, test_config: bool = False)
 
     import uvicorn
 
-    from common.utils import AuthSettingsDependency
-    from webapp.core.settings import DB_FOLDER, init_test_settings, settings
+    from webapp.core.settings import DB_FOLDER, init_test_settings
     from webapp.fastapi_app import app
 
     dirs = os.listdir()
@@ -46,7 +45,6 @@ def webapp(host: str = "localhost", port: int = 8000, test_config: bool = False)
     if test_config:
         init_test_settings()
 
-    AuthSettingsDependency.set_new(settings.auth)
     uvicorn.run(app, host=host, port=port)
 
 

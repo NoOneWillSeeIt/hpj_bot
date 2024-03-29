@@ -7,7 +7,7 @@ import redis.asyncio as aredis
 from sqlalchemy import delete, select
 
 from common.constants import DAYS_TO_STORE_ENTRIES, DB_DATE_FORMAT, Channel
-from common.utils import concat_url
+from common.utils import concat_url, gen_jwt_token
 from webapp.core import db_helper, redis_helper
 from webapp.core.models import JournalEntry, User
 from webapp.core.redis import RedisKeys as rk
@@ -20,6 +20,9 @@ async def call_channel_hook(
     json: dict | None = None,
 ) -> httpx.Response:
     async with httpx.AsyncClient() as client:
+        client.headers.update(
+            {"x-bearer": gen_jwt_token({"issuer": "webapp", "reason": "alarms"})}
+        )
         return await client.post(url, json=json)
 
 

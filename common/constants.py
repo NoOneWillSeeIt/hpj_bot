@@ -2,8 +2,7 @@ import os
 from datetime import timedelta, timezone
 from enum import StrEnum, auto
 from pathlib import Path
-
-from pydantic_settings import BaseSettings
+from typing import Final
 
 BASE_DIR = Path(os.getcwd())
 CERTS_DIR = BASE_DIR / "certs"
@@ -28,8 +27,10 @@ class OutputFileFormats(StrEnum):
     # PDF = auto()
 
 
-class AuthSettings(BaseSettings):
-    public_key: Path = CERTS_DIR / "public.key"
-    private_key: Path = CERTS_DIR / "private.key"
-    algorithm: str = "RS256"
-    expire_seconds: int = 5 * 60
+class AuthSettings:
+    public_key_path: Final[Path] = CERTS_DIR / "public.key"
+    private_key_path: Final[Path] = CERTS_DIR / "private.key"
+    public_key: Final[bytes] = public_key_path.read_bytes()
+    private_key: Final[bytes] = private_key_path.read_bytes()
+    algorithm: Final[str] = "RS256"
+    expire_seconds: Final[int] = 5 * 60
