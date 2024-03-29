@@ -15,7 +15,7 @@ from telegram.ext import (
 from common.survey.hpj_questions import get_head_pain_survey
 from common.survey.survey import Survey
 from tg_bot.commands import HPJCommands, SurveyMenuCommands
-from tg_bot.requests import save_report
+from tg_bot.requests import is_new_user, save_report
 
 SURVEY_CONVO = 0
 
@@ -26,11 +26,11 @@ class SurveyHandlers:
     @classmethod
     async def start(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Starts survey and greets user if it's first time."""
-        # if await asyncdb.is_new_user(context.bot_data, update.message.chat_id):
-        #     await update.message.reply_text(
-        #         'Опрос можно перезапустить, вернуться к предыдущему вопросу или остановить, чтобы '
-        #         'вернуться позже. Для управления опросом пользуйся меню команд\n↓'
-        #     )
+        if await is_new_user(update.message.chat_id):
+            await update.message.reply_text(
+                "Опрос можно перезапустить, вернуться к предыдущему вопросу или остановить, чтобы "
+                "вернуться позже. Для управления опросом пользуйся меню команд\n↓"
+            )
         return await SurveyHandlers.convo(update, context)
 
     @classmethod
