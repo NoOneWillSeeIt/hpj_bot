@@ -95,14 +95,15 @@ def configure_webapp(bot_app: Application) -> FastAPI:
 
 async def run_bot(bot_app: Application, server: uvicorn.Server, webhook_url: str):
     await set_remote_webhooks(concat_url(webhook_url, "webhooks"))
-    await bot_app.bot.set_webhook(
-        url=concat_url(webhook_url, "telegram"),
-        allowed_updates=Update.ALL_TYPES,
-        certificate=bot_settings.ssl.certfile,
-    )
 
     async with bot_app:
+        await bot_app.post_init(bot_app)
         await bot_app.start()
+        await bot_app.bot.set_webhook(
+            url=concat_url(webhook_url, "telegram"),
+            allowed_updates=Update.ALL_TYPES,
+            certificate=bot_settings.ssl.certfile,
+        )
         await server.serve()
         await bot_app.stop()
         await bot_app.bot.delete_webhook()
