@@ -45,7 +45,7 @@ class RedisSettings(BaseSettings):
 class TestRedisSettings(RedisSettings):
     host: str = Field(default=DEFAULT_URL, alias='redis_test_host')
     port: int = Field(default=DEFAULT_REDIS_PORT, alias='redis_test_port')
-    db: int = 0
+    db: int = Field(default=1, alias='redis_test_db')
 
 
 class Settings(BaseSettings):
