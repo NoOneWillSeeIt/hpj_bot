@@ -31,16 +31,13 @@ def tgbot(host: str, port: int = 443, remote_url: str = "", test_config: bool = 
 
 @typer.command()
 def webapp(host: str = "localhost", port: int = 8000, test_config: bool = False):
-    import os
-
     import uvicorn
 
     from webapp.core.settings import DB_FOLDER, init_test_settings
     from webapp.fastapi_app import app
 
-    dirs = os.listdir()
-    if DB_FOLDER not in dirs:
-        os.mkdir(DB_FOLDER)
+    if not DB_FOLDER.exists():
+        DB_FOLDER.mkdir()
 
     if test_config:
         init_test_settings()
