@@ -15,17 +15,14 @@ DEFAULT_REDIS_PORT = 6379
 class DbSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="hpj_db_")
 
-    url: str = Field(
-        default=f"{DB_ENGINE}/{DB_FOLDER.as_posix()}/hpj_bot.db",
-        validation_alias="url",
-    )
+    url: str = f"{DB_ENGINE}/{DB_FOLDER.as_posix()}/hpj_bot.db"
     echo: bool = False
 
 
 class TestDbSettings(DbSettings):
     url: str = Field(
         default=f"{DB_ENGINE}/{DB_FOLDER.as_posix()}/hpj_test.db",
-        validation_alias="test_url",
+        validation_alias="hpj_db_test_url",
     )
     echo: bool = True
 
@@ -40,14 +37,14 @@ class JinjaSettings(BaseModel):
 class RedisSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="redis_")
 
-    host: str = Field(default=DEFAULT_URL, validation_alias="url")
-    port: int = Field(default=DEFAULT_REDIS_PORT, validation_alias="port")
+    host: str = DEFAULT_URL
+    port: int = DEFAULT_REDIS_PORT
     db: int = 0
 
 
 class TestRedisSettings(RedisSettings):
-    host: str = DEFAULT_URL
-    port: int = DEFAULT_REDIS_PORT
+    host: str = Field(default=DEFAULT_URL, alias='redis_test_host')
+    port: int = Field(default=DEFAULT_REDIS_PORT, alias='redis_test_port')
     db: int = 0
 
 
