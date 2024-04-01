@@ -20,7 +20,7 @@ class RedisHelper:
 
     @contextmanager
     def connection(self) -> Generator[Redis, None, None]:
-        conn = Redis(connection_pool=self.redis)
+        conn = Redis(connection_pool=self.redis.connection_pool)
         try:
             yield conn
         finally:
