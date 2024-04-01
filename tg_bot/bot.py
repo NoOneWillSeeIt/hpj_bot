@@ -18,7 +18,7 @@ from tg_bot.commands import DefaultMenuCommands
 from tg_bot.constants import PERSISTENCE_PATH, bot_settings, init_remote_settings
 from tg_bot.handlers import ALL_COMMAND_HANDLERS, ERROR_HANDLER
 from tg_bot.handlers.webhooks import WebhookAlarmsUpdate, WebhookReportUpdate
-from tg_bot.requests import set_remote_webhooks
+from tg_bot.requests import delete_remote_webhooks, set_remote_webhooks
 
 
 async def post_init(application: Application) -> None:
@@ -105,6 +105,7 @@ async def run_bot(bot_app: Application, server: uvicorn.Server, webhook_url: str
             certificate=bot_settings.ssl.certfile,
         )
         await server.serve()
+        await delete_remote_webhooks()
         await bot_app.stop()
         await bot_app.bot.delete_webhook()
 
