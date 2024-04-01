@@ -7,13 +7,12 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from common.constants import ReportTaskProducer
 from common.survey.hpj_questions import Questions
 from common.utils import concat_url, gen_jwt_token
 from webapp.core import redis_helper
 from webapp.core.db_helper import DatabaseHelper
 from webapp.core.models import JournalEntry
-from webapp.core.redis import RedisKeys, ReportTaskInfo
+from webapp.core.redis import RedisKeys, ReportTaskInfo, ReportTaskProducer
 from webapp.core.settings import DbSettings, JinjaSettings, init_test_settings, settings
 from webapp.workers.reports.journal_view.html_generator import HTMLGenerator
 from webapp.workers.utils import GracefulKiller
