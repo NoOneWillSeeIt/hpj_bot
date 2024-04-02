@@ -106,7 +106,7 @@ async def db_cleaner_task():
     async with db_helper.async_session() as session:
         stmt = select(JournalEntry.id).filter(JournalEntry.date.not_in(allowed_dates))
         result = await session.execute(stmt)
-        result = list(result.scalars.all())
+        result = list(result.scalars().all())
         del_stmt = delete(JournalEntry).where(JournalEntry.id.in_(result))
         session.execute(del_stmt)
         session.commit()
