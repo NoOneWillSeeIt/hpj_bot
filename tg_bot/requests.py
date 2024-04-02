@@ -32,7 +32,9 @@ async def send_request(
 ) -> tuple[OptionalHttpxErr, httpx.Response | None]:
     try:
         async with httpx.AsyncClient() as client:
-            client.headers.update({"x-bearer": gen_jwt_token({"issuer": "tgbot"})})
+            client.headers.update(
+                {"Authorization": "Bearer " + gen_jwt_token({"issuer": "tgbot"})}
+            )
             url = get_remote_url(endpoint)
             response = await client.request(method, url, params=query_params, json=json)
             response.raise_for_status()
@@ -82,9 +84,7 @@ async def save_alarm(chat_id: int, time: time | None) -> OptionalHttpxErr:
         },
     )
     if err:
-        logging.error(
-            f"Alarm wasn't set due to network error: {err}"
-        )
+        logging.error(f"Alarm wasn't set due to network error: {err}")
 
     return err
 
@@ -103,7 +103,7 @@ async def is_new_user(chat_id: int) -> bool:
         logging.error(f"New user check returned with error: {err}")
         return True
 
-    resp_json = json.loads(response.text if response else '')
+    resp_json = json.loads(response.text if response else "")
     return resp_json.get("is_new", True)
 
 

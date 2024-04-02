@@ -171,7 +171,7 @@ class Scheduler:
         await self._task
         logger.info("Shutting down scheduler. Waiting for tasks to finish")
         if self._running_tasks:
-            asyncio.wait(self._running_tasks)
+            await asyncio.wait(self._running_tasks)
 
     async def _get_jobs(self, date: datetime) -> list[Job]:
         jobs_ids = await self.redis.zrangebyscore(
