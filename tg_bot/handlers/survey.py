@@ -53,12 +53,13 @@ class SurveyHandlers:
         if not survey.isongoing:
             chat_id = update.message.chat_id
             await context.bot.delete_my_commands(BotCommandScopeChat(chat_id))
-            saved = await save_report(chat_id, survey.replies)
-            if not saved:
+            err = await save_report(chat_id, survey.replies)
+            if err:
                 await update.message.reply_text(
                     "Что-то пошло не так... Попробуйте позже.",
                     reply_markup=get_survey_keyboard(None),
                 )
+                await context.application.process_error(update, err)
                 return ConversationHandler.END
 
             await update.message.reply_text(

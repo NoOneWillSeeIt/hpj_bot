@@ -15,7 +15,7 @@ from telegram.ext import (
 
 from common.utils import check_jwt_token_dep, concat_url
 from tg_bot.commands import DefaultMenuCommands
-from tg_bot.constants import PERSISTENCE_PATH, bot_settings, init_remote_settings
+from tg_bot.constants import PERSISTENCE_PATH, bot_settings
 from tg_bot.handlers import ALL_COMMAND_HANDLERS, ERROR_HANDLER
 from tg_bot.handlers.webhooks import WebhookAlarmsUpdate, WebhookReportUpdate
 from tg_bot.requests import delete_remote_webhooks, set_remote_webhooks
@@ -112,7 +112,7 @@ async def run_bot(bot_app: Application, server: uvicorn.Server, webhook_url: str
 
 def start_bot(host: str, port: int, remote_url: str, test_config: bool = False):
     if remote_url:
-        init_remote_settings(remote_url)
+        bot_settings.remote.url = remote_url
 
     bot_app = configure_bot(test_config)
     webapp = configure_webapp(bot_app)

@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import datetime, time
+from typing import TypeAlias
 
 import httpx
 
@@ -9,11 +10,17 @@ from common.survey.hpj_questions import prepare_answers_for_db
 from common.utils import concat_url, gen_jwt_token
 from tg_bot.constants import bot_settings
 
-API_VERSION_ENDPOINT = "api/v1"
+HttpxErrors: TypeAlias = (
+    httpx.HTTPError | httpx.InvalidURL | httpx.StreamError | httpx.CookieConflict
+)
+
+OptionalHttpxErr: TypeAlias = HttpxErrors | None
 
 
 def get_remote_url(endpoint: str) -> str:
-    return concat_url(bot_settings.remote_url, API_VERSION_ENDPOINT, endpoint)
+    return concat_url(
+        bot_settings.remote.url, bot_settings.remote.api_endpoint, endpoint
+    )
 
 
 async def send_request(
@@ -22,21 +29,32 @@ async def send_request(
     *,
     query_params: dict | None = None,
     json: dict | None = None,
-) -> tuple[bool, httpx.Response]:
-    async with httpx.AsyncClient() as client:
-        client.headers.update({"x-bearer": gen_jwt_token({"issuer": "tgbot"})})
-        url = get_remote_url(endpoint)
-        response = await client.request(method, url, params=query_params, json=json)
-        return response.status_code == 200, response
+) -> tuple[OptionalHttpxErr, httpx.Response | None]:
+    try:
+        async with httpx.AsyncClient() as client:
+            client.headers.update({"x-bearer": gen_jwt_token({"issuer": "tgbot"})})
+            url = get_remote_url(endpoint)
+            response = await client.request(method, url, params=query_params, json=json)
+            response.raise_for_status()
+            return None, response
+
+    except (
+        httpx.HTTPError,
+        httpx.InvalidURL,
+        httpx.StreamError,
+        httpx.CookieConflict,
+    ) as ex:
+        logging.error(ex)
+        return ex, None
 
 
 async def order_report(
     chat_id: int,
     start_date: datetime | None,
     end_date: datetime | None,
-) -> bool:
+) -> OptionalHttpxErr:
 
-    ok, response = await send_request(
+    err, _ = await send_request(
         "get",
         endpoint="entries/report",
         query_params={
@@ -46,16 +64,16 @@ async def order_report(
             "end": end_date,
         },
     )
-    if not ok:
-        logging.error(f"Report wasnt ordered. Server responded with: {response}")
+    if err:
+        logging.error(f"Report wasnt ordered. Error: {err}")
 
-    return ok
+    return err
 
 
-async def save_alarm(chat_id: int, time: time | None) -> bool:
+async def save_alarm(chat_id: int, time: time | None) -> OptionalHttpxErr:
 
     parsed_time = time.strftime("%H:%M") if time else None
-    ok, response = await send_request(
+    err, _ = await send_request(
         "post",
         endpoint="users/set-alarm",
         json={
@@ -63,17 +81,17 @@ async def save_alarm(chat_id: int, time: time | None) -> bool:
             "alarm": parsed_time,
         },
     )
-    if not ok:
+    if err:
         logging.error(
-            f"Alarm wasn't set to {parsed_time}. Server responded with: {response}"
+            f"Alarm wasn't set due to network error: {err}"
         )
 
-    return ok
+    return err
 
 
 async def is_new_user(chat_id: int) -> bool:
 
-    ok, response = await send_request(
+    err, response = await send_request(
         "get",
         endpoint="users/is-new-user",
         query_params={
@@ -81,18 +99,18 @@ async def is_new_user(chat_id: int) -> bool:
             "channel_id": chat_id,
         },
     )
-    if not ok:
-        logging.error(f"is-new-user endpoint answered with: {response}")
+    if err:
+        logging.error(f"New user check returned with error: {err}")
         return True
 
-    resp_json = json.loads(response.text)
+    resp_json = json.loads(response.text if response else '')
     return resp_json.get("is_new", True)
 
 
-async def save_report(chat_id: int, replies: dict[str, str]) -> bool:
+async def save_report(chat_id: int, replies: dict[str, str]) -> OptionalHttpxErr:
 
     date, report = prepare_answers_for_db(replies)
-    ok, response = await send_request(
+    err, _ = await send_request(
         "post",
         endpoint="entries/save-entry",
         json={
@@ -101,29 +119,29 @@ async def save_report(chat_id: int, replies: dict[str, str]) -> bool:
             "entry": report,
         },
     )
-    if not ok:
-        logging.error(f"Report wasn't saved. Server responded with: {response}")
+    if err:
+        logging.error(f"Report wasn't saved. Error: {err}")
 
-    return ok
+    return err
 
 
 async def set_remote_webhooks(webhook_url: str):
 
-    ok, response = await send_request(
+    err, _ = await send_request(
         "post",
         endpoint="webhooks/subscribe",
         json={"channel": Channel.telegram, "url": webhook_url},
     )
-    if not ok:
-        raise ConnectionError(f"Can't set webhooks. Server responded with: {response}")
+    if err:
+        raise ConnectionError(f"Can't set webhooks. Caught error: {err}")
 
 
 async def delete_remote_webhooks():
 
-    ok, response = await send_request(
+    err, _ = await send_request(
         "post",
         endpoint="webhooks/unsubscribe",
         json={"channel": Channel.telegram},
     )
-    if not ok:
-        raise ConnectionError(f"Can't set webhooks. Server responded with: {response}")
+    if err:
+        raise ConnectionError(f"Can't set webhooks. Caught error: {err}")

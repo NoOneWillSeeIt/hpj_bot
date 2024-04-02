@@ -28,7 +28,9 @@ class LoadJournalHandlers:
         """Handles file format choosing. Generates report and send it to user."""
         query = update.callback_query
         await query.answer()
-        await order_report(query.message.chat_id)
+        err = await order_report(query.message.chat_id)
+        if err:
+            await context.application.process_error(update, err)
         context.chat_data.setdefault("report_queries", []).append(
             query.inline_message_id
         )

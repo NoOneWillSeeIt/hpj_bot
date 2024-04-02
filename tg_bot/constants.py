@@ -21,6 +21,13 @@ class SslSettings(BaseSettings):
     key: Path = CERTS_DIR / "ssl-key.key"
 
 
+class WebappSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="hpj_remote_")
+
+    url: str = ""
+    api_endpoint: str = "api/v1"
+
+
 class BotSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="hpj_")
 
@@ -28,16 +35,9 @@ class BotSettings(BaseSettings):
     token: str = ""
     test_token: str = ""
     test_chat: str = ""
-    remote_url: str = ""
+    remote: WebappSettings = WebappSettings()
     ssl: SslSettings = SslSettings()
     auth: AuthSettings = AuthSettings()
 
 
 bot_settings = BotSettings()
-
-
-def init_remote_settings(remote_url: str):
-    global bot_settings
-    settings_dump = bot_settings.model_dump()
-    settings_dump["remote_url"] = remote_url
-    bot_settings = BotSettings(**settings_dump)

@@ -61,5 +61,5 @@ settings = Settings()
 
 
 def init_test_settings():
-    global settings
-    settings = Settings(db=TestDbSettings(), redis=TestRedisSettings())
+    settings.db = TestDbSettings()
+    settings.redis = TestRedisSettings()
