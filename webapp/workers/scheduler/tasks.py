@@ -87,7 +87,7 @@ async def weekly_report_task():
             ch for ch, url in zip(ch_list, ch_urls) if url is not None
         ]
 
-        users = get_channel_users(available_channels)
+        users = await get_channel_users(available_channels)
 
         coros = [
             order_report(redis, user, ReportTaskProducer.scheduler, last_week_interval)
