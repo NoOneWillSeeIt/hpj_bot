@@ -116,7 +116,7 @@ async def save_report(chat_id: int, replies: dict[str, str]) -> OptionalHttpxErr
         json={
             "user": {"channel": Channel.telegram, "channel_id": chat_id},
             "date": date,
-            "entry": report,
+            "entry": json.dumps(report, ensure_ascii=False),
         },
     )
     if err:
