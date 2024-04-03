@@ -21,7 +21,10 @@ async def call_channel_hook(
 ) -> httpx.Response:
     async with httpx.AsyncClient() as client:
         client.headers.update(
-            {"x-bearer": gen_jwt_token({"issuer": "webapp", "reason": "alarms"})}
+            {
+                "Authorization": "Bearer "
+                + gen_jwt_token({"issuer": "webapp", "reason": "alarms"})
+            }
         )
         return await client.post(url, json=json)
 

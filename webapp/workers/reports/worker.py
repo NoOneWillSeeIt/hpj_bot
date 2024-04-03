@@ -65,7 +65,10 @@ def generate_report(info: ReportTaskInfo, url_to_send: str):
         url=url_to_send,
         data={"channel_id": info.channel_id},
         files={"file": (filename, out_file, "multipart/form-data")},
-        headers={"x-bearer": gen_jwt_token({"issuer": "webapp", "reason": "alarms"})},
+        headers={
+            "Authorization": "Bearer "
+            + gen_jwt_token({"issuer": "webapp", "reason": "alarms"})
+        },
     )
 
 

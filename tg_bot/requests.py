@@ -76,7 +76,7 @@ async def save_alarm(chat_id: int, time: time | None) -> OptionalHttpxErr:
 
     parsed_time = time.strftime("%H:%M") if time else None
     err, _ = await send_request(
-        "post",
+        "put",
         endpoint="users/set-alarm",
         json={
             "user": {"channel": Channel.telegram, "channel_id": chat_id},
@@ -111,7 +111,7 @@ async def save_report(chat_id: int, replies: dict[str, str]) -> OptionalHttpxErr
 
     date, report = prepare_answers_for_db(replies)
     err, _ = await send_request(
-        "post",
+        "put",
         endpoint="entries/save-entry",
         json={
             "user": {"channel": Channel.telegram, "channel_id": chat_id},
