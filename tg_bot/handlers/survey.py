@@ -40,39 +40,33 @@ class SurveyHandlers:
 
         survey: Survey | None = context.chat_data.get("survey")
 
-        if not survey:
+        if survey:
+            survey.reply(update.message.text)
+        else:
             await context.bot.set_my_commands(
                 SurveyMenuCommands().menu, BotCommandScopeChat(update.message.chat_id)
             )
             survey = get_head_pain_survey()
             context.chat_data["survey"] = survey
 
-        else:
-            survey.reply(update.message.text)
-
-        if not survey.isongoing:
-            chat_id = update.message.chat_id
-            await context.bot.delete_my_commands(BotCommandScopeChat(chat_id))
-            err = await save_report(chat_id, survey.replies)
-            if err:
-                await update.message.reply_text(
-                    "Что-то пошло не так... Попробуйте позже.",
-                    reply_markup=get_survey_keyboard(None),
-                )
-                await context.application.process_error(update, err)
-                return ConversationHandler.END
-
+        if survey.isongoing:
             await update.message.reply_text(
-                "Сохранено. Выздоравливай!", reply_markup=get_survey_keyboard(survey)
+                survey.question.text, reply_markup=get_survey_keyboard(survey)
             )
-            del context.chat_data["survey"]
-            return ConversationHandler.END
 
-        await update.message.reply_text(
-            survey.question.text, reply_markup=get_survey_keyboard(survey)
-        )
+            return SURVEY_CONVO
 
-        return SURVEY_CONVO
+        chat_id = update.message.chat_id
+        await context.bot.delete_my_commands(BotCommandScopeChat(chat_id))
+        msg = "Сохранено. Выздоравливай!"
+        err = await save_report(chat_id, survey.replies)
+        if err:
+            msg = "Не удалось сохранить. Попробуй позже."
+            await context.application.process_error(update, err)
+
+        await update.message.reply_text(msg, reply_markup=get_survey_keyboard(survey))
+        del context.chat_data["survey"]
+        return ConversationHandler.END
 
     @classmethod
     async def stop(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
