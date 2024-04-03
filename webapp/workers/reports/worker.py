@@ -7,6 +7,7 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from common.constants import CERTS_DIR
 from common.survey.hpj_questions import Questions
 from common.utils import concat_url, gen_jwt_token
 from webapp.core import redis_helper
@@ -69,6 +70,7 @@ def generate_report(info: ReportTaskInfo, url_to_send: str):
             "Authorization": "Bearer "
             + gen_jwt_token({"issuer": "webapp", "reason": "alarms"})
         },
+        verify=str(CERTS_DIR / "ssl-cert.pem"),
     )
 
 

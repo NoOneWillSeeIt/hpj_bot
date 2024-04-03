@@ -6,7 +6,12 @@ import httpx
 import redis.asyncio as aredis
 from sqlalchemy import delete, select
 
-from common.constants import DAYS_TO_STORE_ENTRIES, ENTRY_DATE_FORMAT, Channel
+from common.constants import (
+    CERTS_DIR,
+    DAYS_TO_STORE_ENTRIES,
+    ENTRY_DATE_FORMAT,
+    Channel,
+)
 from common.utils import concat_url, gen_jwt_token
 from webapp.core import db_helper, redis_helper
 from webapp.core.models import JournalEntry, User
@@ -19,7 +24,7 @@ async def call_channel_hook(
     *,
     json: dict | None = None,
 ) -> httpx.Response:
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(verify=str(CERTS_DIR / "ssl-cert.pem")) as client:
         client.headers.update(
             {
                 "Authorization": "Bearer "
