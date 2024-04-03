@@ -3,13 +3,12 @@ from typing import Annotated
 
 from pydantic import AfterValidator, BaseModel
 
+from common.constants import ENTRY_DATE_FORMAT
 from webapp.api_v1.common_dependencies.schemas import UserMixinSchema
-
-DATE_FMT = "%d.%m.%y"
 
 
 def validate_date(date: str) -> str:
-    datetime.datetime.strptime(date, DATE_FMT)
+    datetime.datetime.strptime(date, ENTRY_DATE_FORMAT)
     return date
 
 

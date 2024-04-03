@@ -6,7 +6,7 @@ import httpx
 import redis.asyncio as aredis
 from sqlalchemy import delete, select
 
-from common.constants import DAYS_TO_STORE_ENTRIES, DB_DATE_FORMAT, Channel
+from common.constants import DAYS_TO_STORE_ENTRIES, ENTRY_DATE_FORMAT, Channel
 from common.utils import concat_url, gen_jwt_token
 from webapp.core import db_helper, redis_helper
 from webapp.core.models import JournalEntry, User
@@ -80,8 +80,8 @@ async def weekly_report_task():
         today = datetime.today()
         weekday = today.isoweekday()
         last_week_interval = (
-            (today - timedelta(days=weekday + 6)).strftime(DB_DATE_FORMAT),  # monday
-            (today - timedelta(days=weekday)).strftime(DB_DATE_FORMAT),  # sunday
+            (today - timedelta(days=weekday + 6)).strftime(ENTRY_DATE_FORMAT),  # monday
+            (today - timedelta(days=weekday)).strftime(ENTRY_DATE_FORMAT),  # sunday
         )
 
         ch_list = list(Channel)
@@ -103,7 +103,7 @@ async def weekly_report_task():
 async def db_cleaner_task():
     today = datetime.today()
     allowed_dates = [
-        (today - timedelta(days=i)).strftime(DB_DATE_FORMAT)
+        (today - timedelta(days=i)).strftime(ENTRY_DATE_FORMAT)
         for i in range(DAYS_TO_STORE_ENTRIES)
     ]
     async with db_helper.async_session() as session:

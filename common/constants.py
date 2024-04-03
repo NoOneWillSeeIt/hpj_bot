@@ -11,7 +11,7 @@ MSK_TIMEZONE_OFFSET = timezone(timedelta(hours=3))
 
 DAYS_TO_STORE_ENTRIES = 60
 
-DB_DATE_FORMAT = "%d.%m.%y"
+ENTRY_DATE_FORMAT = "%d.%m.%Y"
 
 
 class Channel(StrEnum):

@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import List, Tuple
 
+from common.constants import ENTRY_DATE_FORMAT
 from common.survey import IQuestion, Survey, create_question
 
 ENTRY_KEY_FORMAT = "%d.%m"
@@ -140,14 +141,14 @@ def get_head_pain_survey() -> Survey:
 
 
 def prepare_date(str_date: str) -> str:
-    """Convert date string from %d.%m to %d.%m.%y"""
+    """Convert date string from %d.%m to %d.%m.%Y"""
     today = datetime.today()
     str_date = str_date + f".{today.year}"
-    date = datetime.strptime(str_date, "%d.%m.%Y")
+    date = datetime.strptime(str_date, ENTRY_DATE_FORMAT)
     if date - today > timedelta(days=2):
         date = date.replace(year=date.year - 1)
 
-    return date.strftime("%d.%m.%Y")
+    return date.strftime(ENTRY_DATE_FORMAT)
 
 
 def prepare_answers_for_db(replies: dict) -> Tuple[str, dict]:
