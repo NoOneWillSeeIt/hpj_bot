@@ -5,7 +5,7 @@ from typing import TypeAlias
 
 import httpx
 
-from common.constants import MSK_TIMEZONE_OFFSET, TIME_FMT, Channel
+from common.constants import TIME_FMT, Channel
 from common.survey.hpj_questions import prepare_answers_for_db
 from common.utils import concat_url, gen_jwt_token
 from tg_bot.constants import bot_settings
@@ -73,9 +73,6 @@ async def order_report(
 
 
 async def save_alarm(chat_id: int, time: time | None) -> OptionalHttpxErr:
-
-    if time:
-        time = time.replace(tzinfo=MSK_TIMEZONE_OFFSET)
 
     parsed_time = time.strftime(TIME_FMT) if time else None
     err, _ = await send_request(
