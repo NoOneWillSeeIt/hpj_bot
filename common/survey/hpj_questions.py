@@ -143,11 +143,11 @@ def prepare_date(str_date: str) -> str:
     """Convert date string from %d.%m to %d.%m.%y"""
     today = datetime.today()
     str_date = str_date + f".{today.year}"
-    date = datetime.strptime(str_date, "%d.%m.%y")
+    date = datetime.strptime(str_date, "%d.%m.%Y")
     if date - today > timedelta(days=2):
         date = date.replace(year=date.year - 1)
 
-    return date.strftime("%d.%m.%y")
+    return date.strftime("%d.%m.%Y")
 
 
 def prepare_answers_for_db(replies: dict) -> Tuple[str, dict]:
