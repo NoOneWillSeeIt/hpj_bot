@@ -2,12 +2,13 @@ import json
 import logging
 import multiprocessing
 from concurrent.futures import ProcessPoolExecutor
+from datetime import datetime, timedelta
 
 import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from common.constants import CERTS_DIR
+from common.constants import CERTS_DIR, ENTRY_DATE_FORMAT
 from common.survey.hpj_questions import Questions
 from common.utils import concat_url, gen_jwt_token
 from webapp.core import redis_helper
@@ -35,15 +36,38 @@ def init_process_worker(db_settings: DbSettings, jinja_settings: JinjaSettings):
 
 
 def read_entries_from_db(session: Session, info: ReportTaskInfo) -> list[JournalEntry]:
+    start_dt = datetime.strptime(info.start, ENTRY_DATE_FORMAT)
+    end_dt = datetime.strptime(info.end, ENTRY_DATE_FORMAT)
+    delta_days = (end_dt - start_dt).days
+    report_range = [
+        (end_dt - timedelta(days=i)).strftime(ENTRY_DATE_FORMAT)
+        for i in range(delta_days)
+    ]
     stmt = (
         select(JournalEntry)
         .where(JournalEntry.user_id == info.user_id)
-        .where(info.start <= JournalEntry.date <= info.end)
+        .where(JournalEntry.date.in_(report_range))
     )
     return session.scalars(stmt).all()
 
 
-def generate_report(info: ReportTaskInfo, url_to_send: str):
+def send_report(url: str, data: dict | None, files: dict | None):
+    try:
+        httpx.post(
+            url=url,
+            data=data,
+            files=files,
+            headers={
+                "Authorization": "Bearer "
+                + gen_jwt_token({"issuer": "webapp", "reason": "alarms"})
+            },
+            verify=str(CERTS_DIR / "ssl-cert.pem"),
+        )
+    except Exception as ex:
+        _process_logger.error(f"Caught error sending report: {ex}")
+
+
+def generate_report(info: ReportTaskInfo, url: str):
     entry_rows = []
     with _process_db_helper.session() as session:
         entry_rows = read_entries_from_db(session, info)
@@ -51,10 +75,7 @@ def generate_report(info: ReportTaskInfo, url_to_send: str):
     if not entry_rows:
         # if task was created by channel we need to send empty answer
         if info.producer == ReportTaskProducer.channel:
-            httpx.post(
-                url=url_to_send,
-                data={"channel_id": info.channel_id},
-            )
+            send_report(url, data={"channel_id": info.channel_id})
         return
 
     out_file = _process_html_generator.generate(
@@ -62,15 +83,10 @@ def generate_report(info: ReportTaskInfo, url_to_send: str):
     )
     filename = _process_html_generator.gen_filename(f"{info.start}-{info.end}")
 
-    httpx.post(
-        url=url_to_send,
+    send_report(
+        url,
         data={"channel_id": info.channel_id},
         files={"file": (filename, out_file, "multipart/form-data")},
-        headers={
-            "Authorization": "Bearer "
-            + gen_jwt_token({"issuer": "webapp", "reason": "alarms"})
-        },
-        verify=str(CERTS_DIR / "ssl-cert.pem"),
     )
 
 
@@ -93,9 +109,9 @@ def worker(worker_count: int = 4, test_config: bool = False):
             if not task_key:
                 continue
 
-            info = ReportTaskInfo.from_str(task_key)
+            info = ReportTaskInfo.from_str(task_key[1])
             if not info:
-                logging.error(f'Can\'t parse task info: "{info}"')
+                logging.error(f'Can\'t parse task info: "{task_key[1]}"')
                 continue
 
             channel_url = redis.get(RedisKeys.webhooks_url(info.channel))
