@@ -52,8 +52,8 @@ async def send_request(
 
 async def order_report(
     chat_id: int,
-    start_date: datetime | None,
-    end_date: datetime | None,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
 ) -> OptionalHttpxErr:
 
     err, _ = await send_request(
