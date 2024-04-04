@@ -2,7 +2,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, status
 
-from common.constants import Channel
+from common.constants import MSK_TIMEZONE_OFFSET, Channel
 from webapp.api_v1.common_dependencies import (
     EnsureUserBodyDep,
     FindUserQueryDep,
@@ -55,4 +55,6 @@ async def get_report(
     end_date: FormattedDate | None = None,
 ) -> ReportOrder:
     await enqueue_report_order(redis, user, start_date, end_date)
-    return ReportOrder(accepted_at=datetime.now().time())
+    return ReportOrder(
+        accepted_at=datetime.now(tz=MSK_TIMEZONE_OFFSET).strftime("%H:%M:%S")
+    )
