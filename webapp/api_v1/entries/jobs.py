@@ -25,4 +25,4 @@ async def enqueue_report_order(
         end_date,
     )
 
-    return await redis.rpush(RedisKeys.reports_queue, task_key)
+    return await redis.rpush(RedisKeys.reports_queue, task_key.to_str())
