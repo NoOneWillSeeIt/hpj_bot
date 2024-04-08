@@ -8,10 +8,12 @@ from sqlalchemy.orm import Session, sessionmaker
 
 class DatabaseHelper:
 
-    def __init__(self, db_url: str, echo: bool) -> None:
+    def __init__(self, db_url: str, async_db_url: str, echo: bool) -> None:
         self.engine = create_engine(url=db_url, echo=echo)
-        self.sessionmaker = sessionmaker(bind=self.engine)
-        self.async_engine = create_async_engine(url=db_url, echo=echo)
+        self.sessionmaker = sessionmaker(
+            bind=self.engine, autoflush=False, autocommit=False, expire_on_commit=False
+        )
+        self.async_engine = create_async_engine(url=async_db_url, echo=echo)
         self.async_sessionmaker = async_sessionmaker(
             bind=self.async_engine,
             autoflush=False,

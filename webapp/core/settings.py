@@ -7,7 +7,6 @@ from common.constants import BASE_DIR, AuthSettings
 
 WEBAPP_DIR = BASE_DIR / "webapp"
 DB_FOLDER = BASE_DIR / "db_instance"
-DB_ENGINE = "sqlite+aiosqlite://"
 DEFAULT_URL = "localhost"
 DEFAULT_REDIS_PORT = 6379
 
@@ -15,13 +14,25 @@ DEFAULT_REDIS_PORT = 6379
 class DbSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="hpj_db_")
 
-    url: str = f"{DB_ENGINE}/{DB_FOLDER.as_posix()}/hpj_bot.db"
+    url: str = f"{DB_FOLDER.as_posix()}/hpj_bot.db"
+    dialect: str = "sqlite"
+    async_driver: str = "+aiosqlite"
+    driver: str = ""
     echo: bool = False
+    _engine_url_tmpl = "{}{}:///{}"
+
+    @property
+    def engine_url(self) -> str:
+        return self._engine_url_tmpl.format(self.dialect, self.driver, self.url)
+
+    @property
+    def async_engine_url(self) -> str:
+        return self._engine_url_tmpl.format(self.dialect, self.async_driver, self.url)
 
 
 class TestDbSettings(DbSettings):
     url: str = Field(
-        default=f"{DB_ENGINE}/{DB_FOLDER.as_posix()}/hpj_test.db",
+        default=f"{DB_FOLDER.as_posix()}/hpj_test.db",
         validation_alias="hpj_db_test_url",
     )
     echo: bool = True
@@ -43,9 +54,9 @@ class RedisSettings(BaseSettings):
 
 
 class TestRedisSettings(RedisSettings):
-    host: str = Field(default=DEFAULT_URL, alias='redis_test_host')
-    port: int = Field(default=DEFAULT_REDIS_PORT, alias='redis_test_port')
-    db: int = Field(default=1, alias='redis_test_db')
+    host: str = Field(default=DEFAULT_URL, alias="redis_test_host")
+    port: int = Field(default=DEFAULT_REDIS_PORT, alias="redis_test_port")
+    db: int = Field(default=1, alias="redis_test_db")
 
 
 class Settings(BaseSettings):
