@@ -31,7 +31,7 @@ class LoadJournalHandlers:
         err = await order_report(query.message.chat_id)
         if err:
             await context.application.process_error(update, err)
-            query.edit_message_text(
+            await query.edit_message_text(
                 "Не удалось запросить отчёт. Попробуй позже.", reply_markup=None
             )
             return
