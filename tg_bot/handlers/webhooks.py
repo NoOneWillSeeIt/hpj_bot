@@ -45,14 +45,14 @@ async def alarms_update(update: WebhookAlarmsUpdate, context: CustomContext):
 async def report_update(update: WebhookReportUpdate, context: CustomContext):
     queries = context.chat_data.get("report_queries")
     if queries:
-        query_inline_message_id = queries.pop(0)
+        message_id = queries.pop(0)
         text = (
             "Вот те записи, что у меня есть:"
             if update.report_file
             else "У меня нет твоих записей ¯\\_(ツ)_/¯"
         )
         await context.bot.edit_message_text(
-            text=text, inline_message_id=query_inline_message_id, reply_markup=None
+            text=text, message_id=message_id, reply_markup=None
         )
 
     if update.report_file:

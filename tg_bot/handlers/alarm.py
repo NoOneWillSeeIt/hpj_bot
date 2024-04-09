@@ -56,13 +56,13 @@ class AlarmHandlers:
                 user_input = context.args[0]
 
             time = datetime.strptime(user_input, "%H:%M").time()
+            msg = f'Оповещения будут приходить в {time.strftime("%H:%M")}'
             err = await save_alarm(chat_id, time)
             if err:
                 await context.application.process_error(update, err)
+                msg = "Не удалось сохранить. Попробуй позже."
 
-            await update.message.reply_text(
-                f'Оповещения будут приходить в {time.strftime("%H:%M")}'
-            )
+            await update.message.reply_text(msg)
         except (ValueError, IndexError):
             return False
 
