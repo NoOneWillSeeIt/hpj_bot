@@ -9,6 +9,7 @@ from telegram import Update
 from telegram.ext import (
     Application,
     ApplicationBuilder,
+    ContextTypes,
     PersistenceInput,
     PicklePersistence,
 )
@@ -17,7 +18,11 @@ from common.utils import check_jwt_token_dep, concat_url
 from tg_bot.commands import DefaultMenuCommands
 from tg_bot.constants import PERSISTENCE_PATH, bot_settings
 from tg_bot.handlers import ALL_COMMAND_HANDLERS, ERROR_HANDLER
-from tg_bot.handlers.webhooks import WebhookAlarmsUpdate, WebhookReportUpdate
+from tg_bot.handlers.webhooks import (
+    CustomContext,
+    WebhookAlarmsUpdate,
+    WebhookReportUpdate,
+)
 from tg_bot.requests import delete_remote_webhooks, set_remote_webhooks
 
 
@@ -29,6 +34,7 @@ async def post_init(application: Application) -> None:
 def configure_bot(test_config: bool = False) -> Application:
     """Configure and build app, add handlers"""
     token = bot_settings.test_token if test_config else bot_settings.token
+    context_types = ContextTypes(CustomContext)
     application = (
         ApplicationBuilder()
         .token(token)
@@ -37,6 +43,7 @@ def configure_bot(test_config: bool = False) -> Application:
                 filepath=PERSISTENCE_PATH, store_data=PersistenceInput(bot_data=False)
             )
         )
+        .context_types(context_types)
         .post_init(post_init)
         .build()
     )
