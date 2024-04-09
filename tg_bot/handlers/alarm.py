@@ -1,5 +1,4 @@
 from datetime import datetime
-import logging
 
 from telegram import ReplyKeyboardRemove, Update
 from telegram.ext import (
@@ -72,14 +71,13 @@ class AlarmHandlers:
     async def cancel(cls, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Drop alarm time from table."""
         chat_id = update.message.chat_id
+        msg = "Больше уведомлений не будет. Спасибо за использование, выздоравливай!"
         err = await save_alarm(chat_id, None)
         if err:
+            msg = "Не удалось сохранить. Попробуй позже."
             await context.application.process_error(update, err)
 
-        await update.message.reply_text(
-            "Больше уведомлений не будет. Спасибо за использование, выздоравливай!",
-            reply_markup=ReplyKeyboardRemove(),
-        )
+        await update.message.reply_text(msg, reply_markup=ReplyKeyboardRemove())
 
 
 ALARM_CONVO_HANDLER = ConversationHandler(
