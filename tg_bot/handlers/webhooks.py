@@ -52,7 +52,7 @@ async def report_update(update: WebhookReportUpdate, context: CustomContext):
             else "У меня нет твоих записей ¯\\_(ツ)_/¯"
         )
         await context.bot.edit_message_text(
-            text=text, message_id=message_id, reply_markup=None
+            text=text, chat_id=update.chat_id, message_id=message_id, reply_markup=None
         )
 
     if update.report_file:
