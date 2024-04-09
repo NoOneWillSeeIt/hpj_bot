@@ -89,7 +89,7 @@ async def save_alarm(chat_id: int, time: time | None) -> OptionalHttpxErr:
     return err
 
 
-async def is_new_user(chat_id: int) -> bool:
+async def is_new_user(chat_id: int) -> tuple[OptionalHttpxErr, bool]:
 
     err, response = await send_request(
         "get",
@@ -101,10 +101,10 @@ async def is_new_user(chat_id: int) -> bool:
     )
     if err:
         logging.error(f"New user check returned with error: {err}")
-        return True
+        return err, True
 
     resp_json = json.loads(response.text if response else "")
-    return resp_json.get("is_new", True)
+    return None, resp_json.get("is_new", True)
 
 
 async def save_report(chat_id: int, replies: dict[str, str]) -> OptionalHttpxErr:

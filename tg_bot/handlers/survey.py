@@ -26,7 +26,12 @@ class SurveyHandlers:
     @classmethod
     async def start(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Starts survey and greets user if it's first time."""
-        if await is_new_user(update.message.chat_id):
+        err, is_new = await is_new_user(update.message.chat_id)
+        if err:
+            await update.message.reply_text("Что-то пошло не так. Попробуй позже.")
+            return ConversationHandler.END
+
+        if is_new:
             await update.message.reply_text(
                 "Опрос можно перезапустить, вернуться к предыдущему вопросу или остановить, чтобы "
                 "вернуться позже. Для управления опросом пользуйся меню команд\n↓"
