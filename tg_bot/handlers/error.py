@@ -12,7 +12,7 @@ from tg_bot.constants import bot_settings
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Reports error to dev chat."""
-    logging.error("BOT ERROR: ", exc_info=context.error)
+    logging.error("Update error: ", exc_info=context.error)
 
     tb_list = traceback.format_exception(context.error, limit=-20)
     tb_string = "".join(tb_list)
@@ -24,9 +24,14 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         "</pre>\n\n"
         f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
         f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
-        f"<pre>{html.escape(tb_string)}</pre>"
     )
+    trace_message = f"<pre>{html.escape(tb_string)}</pre>"
 
     await context.bot.send_message(
         chat_id=bot_settings.developer_chat_id, text=message, parse_mode=ParseMode.HTML
+    )
+    await context.bot.send_message(
+        chat_id=bot_settings.developer_chat_id,
+        text=trace_message,
+        parse_mode=ParseMode.HTML,
     )
