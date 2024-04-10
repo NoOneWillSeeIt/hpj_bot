@@ -156,6 +156,8 @@ class Scheduler:
             pipe.zrem(self.__jobs_runtimes, job_id)
             await pipe.execute()
 
+        logger.info(f"Job {repr(job)} was removed")
+
     async def start(self):
         self._active = True
         self._eventloop = asyncio.get_running_loop()
