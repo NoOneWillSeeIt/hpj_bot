@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import StrEnum, auto
 from typing import Any, Self
 
-from common.constants import Channel
+from common.constants import Channel, TIME_FMT
 
 
 class RedisKeys:
@@ -106,12 +106,10 @@ class AlarmTaskInfo(_AlarmTaskInfo, TaskInfo):
     def from_str(cls, info: str) -> Self | None:
         try:
             splitted: list[Any] = info.split(";")
-            action = AlarmActions(splitted[0])
-            splitted[0] = action
+            splitted[0] = AlarmActions(splitted[0])
             splitted[1] = Channel(splitted[1])  # channel
             splitted[2] = int(splitted[2])  # channel_id
-            if action == AlarmActions.add:
-                datetime.strptime(splitted[3], "%H:%M")  # check time conforms to format
+            datetime.strptime(splitted[3], TIME_FMT)  # check time conforms to format
 
             return cls(*splitted)
         except Exception:

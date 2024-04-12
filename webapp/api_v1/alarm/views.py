@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from common.constants import Channel
 from webapp.api_v1.alarm.crud import update_alarm
-from webapp.api_v1.alarm.jobs import enqueue_alarm_setting
+from webapp.api_v1.alarm.jobs import enqueue_alarm_deleting, enqueue_alarm_setting
 from webapp.api_v1.alarm.schemas import IsNewUserSchema, UserAlarmSchema
 from webapp.api_v1.common_dependencies import (
     EnsureUserBodyDep,
@@ -21,11 +21,12 @@ async def set_alarm(
     redis: RedisDep,
     user: EnsureUserBodyDep,
 ) -> UserAlarmSchema:
-    if user.alarm and body.alarm:
-        await enqueue_alarm_setting(redis, user, None)
+    if user.alarm:
+        await enqueue_alarm_deleting(redis, user)
 
     result = await update_alarm(session, user, body.alarm)
-    await enqueue_alarm_setting(redis, user, body.alarm)
+    if body.alarm:
+        await enqueue_alarm_setting(redis, user, body.alarm)
 
     return result
 

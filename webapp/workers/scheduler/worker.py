@@ -6,7 +6,7 @@ from datetime import datetime, time, timedelta
 from redis.asyncio import Redis
 from sqlalchemy import select
 
-from common.constants import MSK_TIMEZONE_OFFSET, Channel
+from common.constants import MSK_TIMEZONE_OFFSET, TIME_FMT, Channel
 from webapp.core import db_helper, redis_helper
 from webapp.core.models import User
 from webapp.core.redis import AlarmActions, AlarmTaskInfo
@@ -28,7 +28,7 @@ def nearest_weekday(day=0) -> datetime:
 
 
 def create_start_date(time: str) -> datetime:
-    start_time = datetime.strptime(time, "%H:%M").time()
+    start_time = datetime.strptime(time, TIME_FMT).time()
     start_date = datetime.combine(datetime.today(), start_time)
 
     return start_date
@@ -56,6 +56,10 @@ async def handle_alarm_task(info: AlarmTaskInfo, scheduler: Scheduler, redis: Re
         # delete job if no args left for alarm
         if not await redis.exists(*alarm_args):
             job_id = await redis.hget(rk.alarms_job, info.alarm)
+            if not job_id:
+                logging.error(f"Job_id for {args_key} wasn't found. Task info: {info}")
+                return
+
             await scheduler.remove_job(job_id)
             await redis.hdel(rk.alarms_job, info.alarm)
 
@@ -118,9 +122,7 @@ async def main():
 
             info = AlarmTaskInfo.from_str(task_key[1])
             if not info:
-                logging.error(
-                    f"Can't parse task info: {task_key[1]}"
-                )
+                logging.error(f"Can't parse task info: {task_key[1]}")
                 continue
 
             await handle_alarm_task(info, scheduler, redis)

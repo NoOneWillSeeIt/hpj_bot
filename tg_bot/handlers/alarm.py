@@ -9,6 +9,7 @@ from telegram.ext import (
     filters,
 )
 
+from common.constants import TIME_FMT
 from tg_bot.commands import HPJCommands
 from tg_bot.requests import save_alarm
 
@@ -54,8 +55,8 @@ class AlarmHandlers:
             if context.args:
                 user_input = context.args[0]
 
-            time = datetime.strptime(user_input, "%H:%M").time()
-            msg = f'Оповещения будут приходить в {time.strftime("%H:%M")}'
+            time = datetime.strptime(user_input, TIME_FMT).time()
+            msg = f'Оповещения будут приходить в {time.strftime(TIME_FMT)}'
             err = await save_alarm(chat_id, time)
             if err:
                 await context.application.process_error(update, err)
