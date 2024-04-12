@@ -16,4 +16,4 @@ from .session_deps import RedisDep, SessionDep
 from .user_deps import ensure_user_body_dep, find_user_query_dep
 
 FindUserQueryDep = Annotated[User | None, Depends(find_user_query_dep)]
-EnsureUserBodyDep = Annotated[User | None, Depends(ensure_user_body_dep)]
+EnsureUserBodyDep = Annotated[User, Depends(ensure_user_body_dep)]

@@ -21,6 +21,9 @@ async def set_alarm(
     redis: RedisDep,
     user: EnsureUserBodyDep,
 ) -> UserAlarmSchema:
+    if user.alarm and body.alarm:
+        await enqueue_alarm_setting(redis, user, None)
+
     result = await update_alarm(session, user, body.alarm)
     await enqueue_alarm_setting(redis, user, body.alarm)
 
