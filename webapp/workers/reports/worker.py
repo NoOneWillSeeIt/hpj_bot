@@ -93,7 +93,7 @@ def read_entries_from_db(
     delta_days = (end_dt - start_dt).days
     report_range = [
         (end_dt - timedelta(days=i)).strftime(ENTRY_DATE_FORMAT)
-        for i in range(delta_days)
+        for i in range(delta_days + 1)
     ]
     stmt = (
         select(JournalEntry)
