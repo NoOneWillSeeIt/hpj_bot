@@ -186,7 +186,7 @@ class Scheduler:
         jobs_data = await self.redis.hmget(self.__jobs_key, jobs_ids)
         for job_id, job_data in zip(jobs_ids, jobs_data):
             if not job_data:
-                logger.error(f"No job data was found for job {job_id}")
+                logger.error(f"No job data was found for job {job_id!r}")
                 await self.redis.zrem(self.__jobs_runtimes, job_id)
                 continue
 

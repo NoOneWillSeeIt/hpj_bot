@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 
 from redis.asyncio import Redis as AsyncRedis
 
-from common.constants import ENTRY_DATE_FORMAT
+from common.constants import ENTRY_DATE_FORMAT, Channel
 from webapp.core import settings
 from webapp.core.models import User
-from webapp.core.redis import RedisKeys, ReportTaskInfo, ReportTaskProducer
+from webapp.core.redis import RedisKeys, ReportTaskInfo, ReportRequester
 
 
 async def enqueue_report_order(
@@ -21,9 +21,9 @@ async def enqueue_report_order(
 
     task_key = ReportTaskInfo(
         user.id,
-        user.channel,
+        Channel(user.channel),
         user.channel_id,
-        ReportTaskProducer.channel,
+        ReportRequester.channel,
         start_date,
         end_date,
     )

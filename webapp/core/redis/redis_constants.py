@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import StrEnum, auto
 from typing import Any, Self
 
-from common.constants import Channel, TIME_FMT
+from common.constants import Channel, TIME_FMT, ReportRequester
 
 
 class RedisKeys:
@@ -34,11 +34,6 @@ class RedisKeys:
         return cls.__webhooks_url.format(channel)
 
 
-class ReportTaskProducer(StrEnum):
-    channel = auto()
-    scheduler = auto()
-
-
 class AlarmActions(StrEnum):
     add = auto()
     delete = auto()
@@ -46,7 +41,7 @@ class AlarmActions(StrEnum):
 
 _ReportTaskInfo = namedtuple(
     "_ReportTaskInfo",
-    ["user_id", "channel", "channel_id", "producer", "start", "end"],
+    ["user_id", "channel", "channel_id", "requester", "start", "end"],
 )
 
 
@@ -75,7 +70,7 @@ class ReportTaskInfo(_ReportTaskInfo, TaskInfo):
         user_id: int,
         channel: Channel,
         channel_id: int,
-        producer: ReportTaskProducer,
+        requester: ReportRequester,
         start: str,
         end: str,
     ): ...
@@ -87,7 +82,7 @@ class ReportTaskInfo(_ReportTaskInfo, TaskInfo):
             splitted[0] = int(splitted[0])  # user_id
             splitted[1] = Channel(splitted[1])  # channel
             splitted[2] = int(splitted[2])  # channel_id
-            splitted[3] = ReportTaskProducer(splitted[3])  # producer
+            splitted[3] = ReportRequester(splitted[3])  # requester
 
             return cls(*splitted)
         except Exception:

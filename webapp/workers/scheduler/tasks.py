@@ -16,7 +16,7 @@ from common.utils import concat_url, gen_jwt_token
 from webapp.core import db_helper, redis_helper
 from webapp.core.models import JournalEntry, User
 from webapp.core.redis import RedisKeys as rk
-from webapp.core.redis import ReportTaskInfo, ReportTaskProducer
+from webapp.core.redis import ReportRequester, ReportTaskInfo
 
 
 async def call_channel_hook(
@@ -43,8 +43,14 @@ async def alarm_task(time: str):
                 continue
 
             channel_url = await redis.get(rk.webhooks_url(channel))
+            if not channel_url:
+                logging.warning(
+                    "No registered url for channel {channel}, but alarms was set"
+                )
+                continue
+
             coro = call_channel_hook(
-                concat_url(channel_url, "alarms"),
+                concat_url(str(channel_url), "alarms"),
                 json={"channel_ids": list(channel_subs), "time": time},
             )
             futures.append(coro)
@@ -65,14 +71,14 @@ async def get_channel_users(channels: list[Channel]) -> list[User]:
 async def order_report(
     redis_client: aredis.Redis,
     user: User,
-    producer: ReportTaskProducer,
+    requester: ReportRequester,
     interval: list[str],
 ):
     task = ReportTaskInfo(
         user.id,
         Channel(user.channel),
         user.channel_id,
-        producer,
+        requester,
         interval[0],
         interval[-1],
     )
@@ -98,7 +104,7 @@ async def weekly_report_task():
         users = await get_channel_users(available_channels)
 
         coros = [
-            order_report(redis, user, ReportTaskProducer.scheduler, last_week_interval)
+            order_report(redis, user, ReportRequester.scheduler, last_week_interval)
             for user in users
         ]
 

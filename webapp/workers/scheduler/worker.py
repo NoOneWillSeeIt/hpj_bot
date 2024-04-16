@@ -2,6 +2,7 @@ import asyncio
 import logging
 import platform
 from datetime import datetime, time, timedelta
+from typing import Iterable
 
 from redis.asyncio import Redis
 from sqlalchemy import select
@@ -93,7 +94,7 @@ async def initialize_scheduler_tasks(scheduler: Scheduler):
         interval=timedelta(days=1),
     )
 
-    users: list[User] = []
+    users: Iterable[User] = []
     async with db_helper.async_session() as session:
         users = await session.scalars(select(User).where(User.alarm.is_not(None)))
 
@@ -101,7 +102,7 @@ async def initialize_scheduler_tasks(scheduler: Scheduler):
         for user in users:
             await handle_alarm_task(
                 AlarmTaskInfo(
-                    AlarmActions.add, user.channel, user.channel_id, user.alarm
+                    AlarmActions.add, Channel(user.channel), user.channel_id, str(user.alarm)
                 ),
                 scheduler,
                 redis,

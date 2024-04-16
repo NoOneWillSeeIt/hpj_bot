@@ -22,6 +22,11 @@ class Channel(StrEnum):
     whatsapp = auto()
 
 
+class ReportRequester(StrEnum):
+    channel = auto()
+    webapp = auto()
+
+
 class OutputFileFormats(StrEnum):
     HTML = auto()
     # currently under construction

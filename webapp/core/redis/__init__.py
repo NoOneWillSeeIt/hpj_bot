@@ -4,7 +4,7 @@ __all__ = (
     "RedisHelper",
     "RedisKeys",
     "ReportTaskInfo",
-    "ReportTaskProducer",
+    "ReportRequester",
 )
 
 from .redis_constants import (
@@ -12,6 +12,6 @@ from .redis_constants import (
     AlarmTaskInfo,
     RedisKeys,
     ReportTaskInfo,
-    ReportTaskProducer,
+    ReportRequester,
 )
 from .redis_helper import RedisHelper
