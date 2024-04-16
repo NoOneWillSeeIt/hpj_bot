@@ -110,7 +110,7 @@ def build_questions() -> dict[Questions, IQuestion]:
         Q.HadSickness: CQ(
             text=Q.HadSickness,
             next_q=Q.HadVomit,
-            options=["Нет", "Незначительная", "Заметная"],
+            options=["Заметная", "Незначительная", "Нет"],
         ),
         Q.HadVomit: CQ(
             text=Q.HadVomit, next_q=Q.LightIrritation, options=yes_no_options

@@ -1,3 +1,4 @@
+from typing import Any
 from .question_base import IQuestion
 
 
@@ -5,7 +6,7 @@ class Survey:
     """Survey class for navigating through questions."""
 
     def __init__(
-        self, questions: dict[str, IQuestion], initial_question_key: str
+        self, questions: dict[Any, IQuestion], initial_question_key: str
     ) -> None:
         """Init survey.
 
