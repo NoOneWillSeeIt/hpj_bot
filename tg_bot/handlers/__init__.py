@@ -16,6 +16,8 @@ __all__ = (
     'REPORT_HOOK_HANDLER',
 )
 
+from telegram.ext import BaseHandler
+
 from .alarm import ALARM_CONVO_HANDLER, ALARM_CANCEL_HANDLER
 from .error import error_handler as ERROR_HANDLER
 from .info import HELP_HANDLER, START_HANDLER
@@ -24,7 +26,7 @@ from .survey import SURVEY_CONVO_HANDLER
 from .webhooks import ALARM_HOOK_HANDLER, REPORT_HOOK_HANDLER
 
 
-ALL_COMMAND_HANDLERS = [
+ALL_COMMAND_HANDLERS: list[BaseHandler] = [
     ALARM_CONVO_HANDLER,
     ALARM_CANCEL_HANDLER,
     START_HANDLER,

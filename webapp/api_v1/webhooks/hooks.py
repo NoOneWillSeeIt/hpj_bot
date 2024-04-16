@@ -1,6 +1,8 @@
 from typing import Annotated
-from fastapi import APIRouter, File
+from fastapi import APIRouter, File, Form
 from pydantic import BaseModel
+
+from common.constants import ReportRequester
 
 
 router = APIRouter()
@@ -12,7 +14,11 @@ class ChannelAlarms(BaseModel):
 
 
 class Report(BaseModel):
-    report_file: Annotated[bytes, File()]
+    channel_id: Annotated[int, Form()]
+    requester: Annotated[ReportRequester, Form()]
+    start_date: Annotated[str, Form()]
+    end_date: Annotated[str, Form()]
+    file: Annotated[bytes, File()]
 
 
 @router.post("channel-alarm")

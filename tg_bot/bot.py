@@ -14,6 +14,7 @@ from telegram.ext import (
     PicklePersistence,
 )
 
+from common.constants import ReportRequester
 from common.utils import check_jwt_token_dep, concat_url
 from tg_bot.commands import DefaultMenuCommands
 from tg_bot.constants import PERSISTENCE_PATH, bot_settings
@@ -82,7 +83,11 @@ def configure_webapp(bot_app: Application) -> FastAPI:
 
     @app.post("/webhooks/reports", dependencies=[Depends(check_jwt_token_dep)])
     async def reports_webhook(
-        channel_id: Annotated[int, Form()], file: UploadFile | None = None
+        channel_id: Annotated[int, Form()],
+        requester: Annotated[ReportRequester, Form()],
+        start_date: Annotated[str, Form()],
+        end_date: Annotated[str, Form()],
+        file: UploadFile | None = None,
     ):
         if file:
             file_content, filename = await file.read(), file.filename
@@ -92,6 +97,9 @@ def configure_webapp(bot_app: Application) -> FastAPI:
         await bot_app.update_queue.put(
             WebhookReportUpdate(
                 chat_id=channel_id,
+                requester=requester,
+                start_date=start_date,
+                end_date=end_date,
                 report_file=file_content,
                 filename=filename,
             )
@@ -104,7 +112,8 @@ async def run_bot(bot_app: Application, server: uvicorn.Server, webhook_url: str
     await set_remote_webhooks(concat_url(webhook_url, "webhooks"))
 
     async with bot_app:
-        await bot_app.post_init(bot_app)
+        if bot_app.post_init:
+            await bot_app.post_init(bot_app)
         await bot_app.start()
         await bot_app.bot.set_webhook(
             url=concat_url(webhook_url, "telegram"),
@@ -129,7 +138,7 @@ def start_bot(host: str, port: int, remote_url: str, test_config: bool = False):
             host=host,
             port=port,
             ssl_certfile=bot_settings.ssl.certfile,
-            ssl_keyfile=bot_settings.ssl.key,
+            ssl_keyfile=bot_settings.ssl.key.read_text(),
         )
     )
 
