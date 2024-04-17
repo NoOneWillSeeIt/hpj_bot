@@ -1,3 +1,6 @@
+import logging
+from datetime import timedelta
+
 from telegram import (
     BotCommandScopeChat,
     ReplyKeyboardMarkup,
@@ -26,7 +29,8 @@ class SurveyHandlers:
     @classmethod
     async def start(cls, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         """Starts survey and greets user if it's first time."""
-        err, is_new = await is_new_user(update.message.chat_id)
+        chat_id = update.message.chat_id
+        err, is_new = await is_new_user(chat_id)
         if err:
             await update.message.reply_text("Что-то пошло не так. Попробуй позже.")
             return ConversationHandler.END
@@ -36,6 +40,11 @@ class SurveyHandlers:
                 "Опрос можно перезапустить, вернуться к предыдущему вопросу или остановить, чтобы "
                 "вернуться позже. Для управления опросом пользуйся меню команд\n↓"
             )
+
+        job_name = f"survey_reminder_{chat_id}"
+        context.job_queue.run_once(
+            survey_reminder, timedelta(hours=2), name=job_name, chat_id=chat_id
+        )
         return await SurveyHandlers.convo(update, context)
 
     @classmethod
@@ -46,7 +55,7 @@ class SurveyHandlers:
         survey: Survey | None = context.chat_data.get("survey")
 
         if survey:
-            survey.reply(update.message.text)
+            survey.reply(update.message.text or "")
         else:
             await context.bot.set_my_commands(
                 SurveyMenuCommands().menu, BotCommandScopeChat(update.message.chat_id)
@@ -123,6 +132,22 @@ def get_survey_keyboard(
         )
 
     return ReplyKeyboardRemove()
+
+
+async def survey_reminder(context: ContextTypes.DEFAULT_TYPE):
+    survey: Survey | None = context.chat_data.get("survey")
+    if survey and survey.isongoing:
+        await context.bot.send_message(
+            chat_id=context.job.chat_id, text="Кажется про меня забыли..."
+        )
+
+
+def remove_job_if_exists(context: ContextTypes.DEFAULT_TYPE, job_name: str):
+    jobs = context.job_queue.get_jobs_by_name(job_name)
+    if not jobs:
+        return
+    for job in jobs:
+        job.schedule_removal()
 
 
 SURVEY_CONVO_HANDLER = ConversationHandler(

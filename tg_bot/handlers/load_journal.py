@@ -1,3 +1,4 @@
+import httpx
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
@@ -30,6 +31,13 @@ class LoadJournalHandlers:
         await query.answer()
         err = await order_report(query.message.chat_id)
         if err:
+            if (
+                isinstance(err, httpx.HTTPStatusError)
+                and err.response.status_code == httpx.codes.NOT_FOUND
+            ):
+                await query.edit_message_text("У меня нет твоих записей")
+                return
+
             await context.application.process_error(update, err)
             await query.edit_message_text(
                 "Не удалось запросить отчёт. Попробуй позже.", reply_markup=None

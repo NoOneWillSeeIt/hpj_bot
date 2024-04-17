@@ -39,9 +39,14 @@ async def read_entry(
     session: SessionDep,
     user: FindUserQueryDep,
 ) -> EntryBaseSchema:
+    err = HTTPException(status.HTTP_404_NOT_FOUND, "Entry not exist")
+    if not user:
+        raise err
+
     db_entry = await get_entry(session, user.id, date)
     if not db_entry:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Entry not exist")
+        raise err
+
     return EntryBaseSchema(date=db_entry.date, entry=db_entry.entry)
 
 
@@ -54,6 +59,9 @@ async def get_report(
     start_date: FormattedDate | None = None,
     end_date: FormattedDate | None = None,
 ) -> ReportOrder:
+    if not user:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not exist")
+
     await enqueue_report_order(redis, user, start_date, end_date)
     return ReportOrder(
         accepted_at=datetime.now(tz=MSK_TIMEZONE_OFFSET).strftime("%H:%M:%S")

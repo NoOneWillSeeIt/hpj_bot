@@ -38,4 +38,4 @@ async def is_new_user(
     session: SessionDep,
     user: FindUserQueryDep,
 ) -> IsNewUserSchema:
-    return IsNewUserSchema(is_new=bool(user is None))
+    return IsNewUserSchema(is_new=bool(user is None or not user.entries))

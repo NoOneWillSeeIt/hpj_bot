@@ -105,7 +105,7 @@ class Scheduler:
         self.redis = redis.Redis(
             host=redis_settings.host, port=redis_settings.port, db=redis_settings.db
         )
-        self._eventloop = None
+        self._eventloop: asyncio.AbstractEventLoop = None  # type: ignore
         self._offset: tzinfo | None = None
         self._running_tasks: set[asyncio.Task] = set()
         self._active = False
