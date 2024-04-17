@@ -138,7 +138,7 @@ def start_bot(host: str, port: int, remote_url: str, test_config: bool = False):
             host=host,
             port=port,
             ssl_certfile=bot_settings.ssl.certfile,
-            ssl_keyfile=bot_settings.ssl.key.read_text(),
+            ssl_keyfile=bot_settings.ssl.key,  # type: ignore
         )
     )
 
