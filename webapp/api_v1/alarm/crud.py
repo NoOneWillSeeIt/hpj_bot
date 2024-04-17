@@ -2,8 +2,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from common.constants import Channel
-from webapp.api_v1.alarm.schemas import ChannelAlarmsSchema, UserAlarmSchema
-from webapp.core.models import User
+from webapp.api_v1.alarm.schemas import UserAlarmSchema
+from webapp.api_v1.common_dependencies.schemas import UserChannelSchema
+from webapp.core.models import JournalEntry, User
 
 
 async def update_alarm(
@@ -12,17 +13,16 @@ async def update_alarm(
     user.alarm = alarm
     await session.commit()
     return UserAlarmSchema(
-        alarm=user.alarm, user={"channel": user.channel, "channel_id": user.channel_id}
+        alarm=user.alarm,
+        user=UserChannelSchema(
+            channel=Channel(user.channel), channel_id=user.channel_id
+        ),
     )
 
 
-async def get_alarms_for_channel(
-    session: AsyncSession, channel: Channel
-) -> list[ChannelAlarmsSchema]:
-    stmt = (
-        select(User.channel_id, User.alarm)
-        .where(User.channel == channel)
-        .where(User.alarm != None)
+async def has_entries(session: AsyncSession, user: User) -> bool:
+    stmt = select(
+        (select(JournalEntry).where(JournalEntry.user_id == user.id)).exists()
     )
-    result = await session.execute(stmt)
-    return list(result.all())
+
+    return bool(await session.scalar(stmt))
