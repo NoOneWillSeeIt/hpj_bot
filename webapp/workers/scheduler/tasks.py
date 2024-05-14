@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from typing import Sequence
 
 import httpx
 import redis.asyncio as aredis
@@ -72,7 +73,7 @@ async def order_report(
     redis_client: aredis.Redis,
     user: User,
     requester: ReportRequester,
-    interval: list[str],
+    interval: Sequence[str],
 ):
     task = ReportTaskInfo(
         user.id,
@@ -104,7 +105,7 @@ async def weekly_report_task():
         users = await get_channel_users(available_channels)
 
         coros = [
-            order_report(redis, user, ReportRequester.scheduler, last_week_interval)
+            order_report(redis, user, ReportRequester.webapp, last_week_interval)
             for user in users
         ]
 
